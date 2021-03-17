@@ -1,0 +1,31 @@
+#' geog_lookup
+#'
+#' Two column datatable used in name checking selection
+#' areas in the get_pbdb function. Column one comprises
+#' valid ISO2 country names, continental area names,
+#' ISO2 country codes for the country names, and three
+#' letter codes for the continental area following PBDB
+#' notation. Any area arguments in get_pbdb are matched
+#' against this column and a warning given if a match
+#' is not found. The second column are the ISO2 codes
+#' and three letter continent codes to which the area
+#' arguments will be converted if necessary. A few edits
+#' were made from the source for the ISO2 data:
+#' read_csv("https://pkgstore.datahub.io/core/country-list/data_csv/data/d7c9d7cfb42cb69f4422dec222dbbaa8/data_csv.csv")
+#' as.data.frame(iso_table)
+#' gsub("Congo, the Democratic Republic of the", "Democratic Republic of Congo", iso_table$Name)
+#' gsub("Korea, Democratic People's Republic of", "North Korea", iso_table$Name)
+#' gsub("Korea, Republic of", "South Korea", iso_table$Name)
+#' gsub("Lao People's Democratic Republic", "Laos", iso_table$Name)
+#' gsub("Viet Nam", "Vietnam", iso_table$Name)
+#' gsub("South Georgia and the South Sandwich Islands", "South Georgia", iso_table$Name)
+#' gsub("Russian Federation", "Russia", iso_table$Name)
+#' gsub(",.*", "", iso_table$Name)
+#' gsub("(\\(+.+\\))", "", iso_table$Name)
+#' gsub(" +", " ", iso_table$Name)
+#' iso_table$Name <- gsub(" $", "", iso_table$Name)
+#' @docType data
+#' @usage data(geog_lookup)
+#' @keywords datasets
+#' @source \href{https://pkgstore.datahub.io/core/country-list/data_csv/data/d7c9d7cfb42cb69f4422dec222dbbaa8/data_csv.csv}{ISO2}
+"geog_lookup"
