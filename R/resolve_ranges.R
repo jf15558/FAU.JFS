@@ -56,7 +56,7 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma",
                            end = "min_ma", err = "age_flag", taxon = "genus", prop = 0.75, verbose = TRUE) {
 
   # global variable workaround
-  . <- lb <- ub <- b <- N <- NULL
+  . <- lb <- ub <- b <- N <- .N <- .SD <- .EACHI <- NULL
   # tabulate error codes in each collection (ignoring uncoded and correct ages R1R, 000)
   codes <- c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0")
   tabs <- data.frame(unique(x[,assemblage]), NA, NA, NA, NA, NA, NA, NA)
@@ -100,8 +100,8 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma",
     foo <- foo[stats::complete.cases(foo),]
     # god-like solution from https://stackoverflow.com/questions/66754356/finding-the-overlapping-range-of-a-set-of-vectors-in-r/66758534#66758534
     dt <- data.table(lb = foo[[3]], ub = foo[[2]])
-    mdt <- dt[, .(b = unique(unlist(data.table::.SD)))]
-    sol <- dt[mdt, on = .(lb <= b, ub >= b), data.table::.N, by = data.table::.EACHI]
+    mdt <- dt[, .(b = unique(unlist(.SD)))]
+    sol <- dt[mdt, on = .(lb <= b, ub >= b), .N, by = .EACHI]
     tprop <- max(sol$N) / nrow(foo)
 
     # if the returned interval covers the proportion of taxa prop
