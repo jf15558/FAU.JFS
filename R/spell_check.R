@@ -48,6 +48,7 @@
 #' @return a dataframe of synonyms (cols 1 and 2), the group in
 #' which they occur, the frequencies of each synonym in the dataset
 #' and finally the q-gram difference between the synonyms
+#' @importFrom stats na.omit
 #' @import stringdist
 #' @import pbapply
 #' @export

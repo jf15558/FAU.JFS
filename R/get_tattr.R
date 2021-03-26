@@ -6,6 +6,9 @@
 #' @return A dataframe of the vertex names in x, along
 #' with their attributes
 #' @import igraph
+#' @importFrom stats na.omit
+#' @importFrom dplyr bind_rows
+#' @importFrom data.table setDF .SD
 
 get_tattr <- function(x) {
 
@@ -29,7 +32,7 @@ get_tattr <- function(x) {
   df1 <- do.call(dplyr::bind_rows, x)
 
   # remove conflicting values, then add back any rows which contained all NA values
-  dfn <- as.data.frame(data.table::setDT(df1)[, lapply(.SD, function(x) head(na.omit(x), 1L)), by = name])
+  dfn <- as.data.frame(data.table::setDT(df1)[, lapply(data.table::.SD, function(x) head(na.omit(x), 1L)), by = "name"])
   df <- rbind(dfn, df1[!df1$name %in% dfn$name,])
 
   # return

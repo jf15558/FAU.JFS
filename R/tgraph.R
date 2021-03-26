@@ -19,7 +19,7 @@
 #' to the console
 #' @return a tgraph object
 #' @import igraph
-#' @import stats
+#' @importFrom stats complete.cases
 
 tgraph <- function(x, ranks = NULL, verbose = TRUE) {
 
@@ -133,7 +133,7 @@ tgraph <- function(x, ranks = NULL, verbose = TRUE) {
     t_graph <- igraph::delete.vertices(t_graph, "ORPHAN")
   }
   g_list <- g_list[-(which(g_list[,1] == "ORPHAN" | g_list[,2] == "ORPHAN")),]
-  g_name <- g_name[complete.cases(g_name),]
+  g_name <- g_name[stats::complete.cases(g_name),]
   # number of vertices that the focal vertex links out to
   igraph::V(t_graph)$degree <- igraph::degree(t_graph, mode = "out")
   # vertex strength (number of times that vertex links out in the database, 0 also assigned to 1)

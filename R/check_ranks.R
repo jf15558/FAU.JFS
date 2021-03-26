@@ -1,14 +1,14 @@
 #' roxygen documentation
-#' 
+#'
 #' check_ranks
-#' 
+#'
 #' Function for checking whether names in one column of a
 #' hierarchically organised dataframe re-occur at other levels.
 #' Two checks are performed. The first checks for names in
 #' adjacent column, assuming that accidental reuse of names at
 #' other levels are most likely to occur at an adjacent rank.
 #' The second compares across all columns.
-#' 
+#'
 #' @param x A dataframe containing hierarchically structured
 #' information, for example a table of genus names and their
 #' higher taxonomic classifications
@@ -20,10 +20,11 @@
 #' @return A list of two lists. The first list contains names
 #' which reoccur at adjacent ranks. The second list contains
 #' names that reoccur at any rank
+#' @importFrom stats na.omit
 #' @export
 
 check_ranks <- function(x, ranks = NULL) {
-  
+
   if(!exists("x")) {
     stop("Please supply a dataframe and optionally a vector of ranks to check")
   }
@@ -42,7 +43,7 @@ check_ranks <- function(x, ranks = NULL) {
   if(!all(unlist(lapply(x, class)) == "character")) {
     stop("Not all rank columns in x are of class character")
   }
-  
+
   crossed_adj <- list()
   crossed_all <- list()
   for(i in 1:(length(levels) - 1)) {

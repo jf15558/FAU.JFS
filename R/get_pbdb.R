@@ -83,8 +83,10 @@
 #' boundaries of those intervals
 #' @return either a PBDB API compatible URL or a pBDB dataset
 #' saved to the disk and/or read into R
+#' @importFrom stats na.omit
 #' @import curl
 #' @import utils
+#' @import data.table
 #' @export
 
 get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "all", fields = c("ident", "coords", "class"),
@@ -173,7 +175,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
         warning("Three or more interval names were provided - only the first and last will be used")
       }
       interval <- paste0(interval[c(1, length(interval))], collapse = ",")
-      load("data/GTS2020.rda")
+      GTS2020 <- get("GTS2020")
       interval <- c(GTS2020$FAD[match(interval[1])], GTS2020$LAD[match(interval[2])])
     }
     if(is.numeric(interval)) {
@@ -235,7 +237,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
       stop("Fields must be a character vector with one or more elements corresponding to PBDB vocabulary")
     }
     fields <- na.omit(unique(fields))
-    load("data/pbdb_fields.rda")
+    pbdb_fields <- get("pbdb_fields")
     inv <- fields[!fields %in% as.vector(unlist(pbdb_fields))]
     if(length(inv) != 0) {
       fields <- fields[!fields %in% inv]
@@ -286,7 +288,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
     }
     if(is.character(area)) {
       area <- unique(area)
-      load("data/geog_lookup.rda")
+      geog_lookup <- get("geog_lookup")
       test <- match(area, geog_lookup$Name)
       if(any(is.na(test))) {
         if(length(test) == length(area)) {
@@ -313,7 +315,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
         if(any(ex_area %in% area)) {
           stop("One or more areas are present in both the search and the exclusion")
         }
-        load("data/geog_lookup.rda")
+        geog_lookup <- get("geog_lookup")
         geog_lookup <- geog_lookup[10:nrow(geog_lookup),]
         test2 <- match(ex_area, geog_lookup$Name)
         if(any(is.na(test2))) {
@@ -477,7 +479,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
     }
     cat("Checking data", "\n")
     dload <- as.list(list.files(tempdir(), pattern = "_pbdb", full.names = TRUE))
-    dload <- lapply(dload, function(x) {read.csv(x, na.strings = c("", " "), fileEncoding = "UTF-8")})
+    dload <- lapply(dload, function(x) {data.table::fread(x, na.strings = c("", " "))})
     dload <- do.call(rbind, dload)
     # clean duplicate occurrences, if any
     dload <- dload[!duplicated(dload$occurrence_no),]
@@ -490,8 +492,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
       do_redate <- FALSE
     }
     if(tscale == "GTS2020") {
-      load("data/GTS2020.rda")
-      tscale <- GTS2020
+      tscale <- get("GTS2020")
       tscale <- tscale[,c("Interval", "FAD", "LAD")]
       do_redate <- TRUE
     }
@@ -520,7 +521,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
 
     # build kingdom field if classification was requested
     if(grepl("class", fields)) {
-      load("data/pbdb_kingdoms.rda")
+      pbdb_kingdoms <- get("pbdb_kingdoms")
       animals <- pbdb_kingdoms$animals
       plants <- pbdb_kingdoms$plants
       protists <- pbdb_kingdoms$protists
@@ -537,10 +538,10 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
     } else {
       fname <- paste0(fname, ".csv")
       cat("Writing data", "\n")
-      write.csv(dload, fname, row.names = FALSE, na = c("", " "), fileEncoding = "UTF-8")
+      data.table::fwrite(dload, fname, row.names = FALSE, na = c("", " "), fileEncoding = "UTF-8")
       if(auto_read) {
         cat("Reading data", "\n")
-        pbdb_data <- read.csv(fname, na.strings = c("", " "), encoding = "UTF-8")
+        pbdb_data <- data.table::fread(fname, na.strings = c("", " "))
         return(pbdb_data)
       }
     }

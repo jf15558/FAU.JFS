@@ -30,6 +30,7 @@
 #' @return a character vector the same length as x. Elements
 #' which were reduced to zero characters during cleaning are
 #' returned as NA
+#' @import stringr
 #' @export
 
 clean_name <- function(x, terms = NULL, collapse = NULL) {
