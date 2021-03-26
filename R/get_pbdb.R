@@ -482,6 +482,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
     dload <- lapply(dload, data.table::fread)
     dload <- do.call(rbind, dload)
     dload <- as.data.frame(dload[!duplicated(dload$occurrence_no), ])
+    dload[dload == ""] <- NA
     # clean tempdir
     del <- list.files(tempdir(), pattern = "_pbdb", full.names = TRUE)
     unlink(del)
@@ -541,6 +542,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
       if(auto_read) {
         cat("Reading data", "\n")
         pbdb_data <- data.table::fread(fname, data.table = FALSE)
+        pbdb_data[pbdb_data == ""] <- NA
         return(pbdb_data)
       }
     }
