@@ -33,8 +33,8 @@ plot_t2 <- function(x, taxon, trank, ranks, mode = c("parent", "child", "all"), 
     stop("Please specify the plotting mode")
   }
 
-  tx <- unique(x[which(x[,trank] %in% taxon), ranks])
-  tg <- tgraph(tx)
+  tx <- unique(x[which(x[,trank] == taxon), ranks])
+  tg <- tgraph(tx, verbose = FALSE)
   if(mode != "all") {
     tv <- get_taxa(tg, taxa = taxon, mode = mode)
     lay <- igraph::layout_with_sugiyama(tv$seq, layers = as.numeric(igraph::V(tv$seq)$rank), hgap = 1)
