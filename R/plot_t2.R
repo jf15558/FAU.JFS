@@ -33,7 +33,7 @@ plot_t2 <- function(x, taxon, trank, ranks, mode = c("parent", "child", "all"), 
     stop("Please specify the plotting mode")
   }
 
-  tx <- unique(x[which(x[,trank] == taxon), ranks])
+  tx <- unique(x[which(x[,trank] %in% taxon), ranks])
   tg <- tgraph(tx)
   if(mode != "all") {
     tv <- get_taxa(tg, taxa = taxon, mode = mode)
