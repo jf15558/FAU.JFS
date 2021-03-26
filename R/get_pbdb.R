@@ -540,7 +540,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
       data.table::fwrite(dload, fname)
       if(auto_read) {
         cat("Reading data", "\n")
-        pbdb_data <- data.table::fread(fname, na.strings = c("", " "))
+        pbdb_data <- as.data.frame(data.table::fread(fname))
         return(pbdb_data)
       }
     }
