@@ -3,6 +3,7 @@
 export(age_ranges)
 export(check_ranks)
 export(clean_name)
+export(find_duplicates)
 export(flag_ranges)
 export(get_pbdb)
 export(plot_t2)
