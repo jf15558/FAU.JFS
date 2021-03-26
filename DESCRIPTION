@@ -22,4 +22,5 @@ Imports:
     dplyr,
     pbapply,
     stringdist,
-    stringr
+    stringr,
+    BMS
