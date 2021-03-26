@@ -247,7 +247,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
     bulk2 <- pbdb_fields$bulk[pbdb_fields$bulk %in% fields]
     if(length(bulk2) != 0) {
       for(i in 1:length(bulk2)) {
-        rem <- get(bulk2[i])
+        rem <- as.vector(unlist(pbdb_fields[which(names(pbdb_fields) == bulk2[i])]))
         fields <- fields[!fields %in% rem]
       }
     }
@@ -479,10 +479,9 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
     }
     cat("Checking data", "\n")
     dload <- as.list(list.files(tempdir(), pattern = "_pbdb", full.names = TRUE))
-    dload <- lapply(dload, function(x) {data.table::fread(x, na.strings = c("", " "))})
+    dload <- lapply(dload, data.table::fread)
     dload <- do.call(rbind, dload)
-    # clean duplicate occurrences, if any
-    dload <- dload[!duplicated(dload$occurrence_no),]
+    dload <- as.data.frame(dload[!duplicated(dload$occurrence_no), ])
     # clean tempdir
     del <- list.files(tempdir(), pattern = "_pbdb", full.names = TRUE)
     unlink(del)
@@ -538,7 +537,7 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
     } else {
       fname <- paste0(fname, ".csv")
       cat("Writing data", "\n")
-      data.table::fwrite(dload, fname, row.names = FALSE, na = c("", " "), fileEncoding = "UTF-8")
+      data.table::fwrite(dload, fname)
       if(auto_read) {
         cat("Reading data", "\n")
         pbdb_data <- data.table::fread(fname, na.strings = c("", " "))
