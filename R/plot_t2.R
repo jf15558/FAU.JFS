@@ -41,7 +41,7 @@ plot_t2 <- function(x, taxon, trank, ranks, mode = c("parent", "child", "all"), 
     rseq <- seq(from = -1, to = 1, length.out = length(unique(igraph::V(tv$seq)$rank)))
     par(mar = c(0, 5, 0, 5))
     par(las = 1)
-    plot(tv$seq, layout = lay$layout, edge.arrow.mode = 0)
+    plot(tv$seq, layout = lay$layout, edge.arrow.mode = 0, margin = 1)
     axis(4, labels = rev(names(tv$ranks)[unique(igraph::V(tv$seq)$rank[order(igraph::V(tv$seq)$rank)])]), at = rseq, col = NA)
   } else {
     tv <- tg
@@ -49,7 +49,7 @@ plot_t2 <- function(x, taxon, trank, ranks, mode = c("parent", "child", "all"), 
     rseq <- seq(from = -1, to = 1, length.out = length(tv$ranks))
     par(mar = c(0, 5, 0, 5))
     par(las = 1)
-    plot(tv$taxa, layout = lay$layout, edge.arrow.mode = 0)
+    plot(tv$taxa, layout = lay$layout, edge.arrow.mode = 0, margin = 1)
     axis(4, labels = rev(names(tv$ranks)[unique(igraph::V(tv$taxa)$rank[order(igraph::V(tv$taxa)$rank)])]), at = rseq, col = NA)
   }
 }
