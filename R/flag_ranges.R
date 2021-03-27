@@ -74,7 +74,7 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = NULL, ycols = NULL, alpha = 
     x <- x[,xcols]
   }
   if(ncol(y) > 3) {
-    y <- y[,xcols]
+    y <- y[,ycols]
   }
   colnames(x) <- colnames(y) <- c("taxon", "max", "min")
 
