@@ -40,7 +40,7 @@ age_ranges <- function(data, taxonomy = "genus", srt = "max_ma", end = "min_ma",
   if(!is.data.frame(data)) {
     stop("Data should be a dataframe")
   }
-  if(!all(c(taxonomy, srt, end)) %in% colnames(data)) {
+  if(!all(c(taxonomy, srt, end) %in% colnames(data))) {
     stop("One or more of taxonomy, srt or end are not colnames in data")
   }
   if(!all(mode) %in% c("max", "min", "bounds")) {
