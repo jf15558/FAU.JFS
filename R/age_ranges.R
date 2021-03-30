@@ -34,14 +34,24 @@
 #' on the FAD and LAD for each taxon name
 #' @export
 
-age_ranges <- function(data, taxonomy = "genus", srt = "max_ma", end = "min_ma", mode = c("max", "min", "bounds")) {
+age_ranges <- function(data, taxonomy = "genus", srt = "max_ma", end = "min_ma", mode = "max") {
 
-  # set max as the default
-  if(length(mode) > 1) {
-    mode = "max"
+  # check arguments
+  if(!is.data.frame(data)) {
+    stop("Data should be a dataframe")
   }
-
-  # check data validity
+  if(!all(c(taxonomy, srt, end)) %in% colnames(data)) {
+    stop("One or more of taxonomy, srt or end are not colnames in data")
+  }
+  if(!all(mode) %in% c("max", "min", "bounds")) {
+    stop("Mode must be one of the following: max, min, bounds")
+  }
+  if(length(mode) > 1) {
+    stop("Mode must be one of the following: max, min, bounds")
+  }
+  if(class(data[,srt]) != "numeric" | class(data[,end]) != "numeric") {
+    stop("Columns srt and end must be numeric")
+  }
   if(any(data[,srt] < data[,end])) {
     stop("One or more maximum ages are smaller than their corresponding minimum ages")
   }

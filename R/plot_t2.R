@@ -29,8 +29,27 @@
 
 plot_t2 <- function(x, taxon, trank, ranks, mode = c("parent", "child", "all"), step = NULL) {
 
+  # check args
+  if(!is.data.frame(x)) {
+    stop("x must be a dataframe. For plotting t* objects directly, use plot_t")
+  }
+  if(length(taxon) != 1) {
+    stop("taxon must be of length 1")
+  }
+  if(length(trank) != 1) {
+    stop("taxon must be of length 1")
+  }
+  if(!all(c(trank, ranks) %in% colnames(x))) {
+    stop("all elements of trank and ranks must be column names in x")
+  }
   if(length(mode) == 3) {
     stop("Please specify the plotting mode")
+  }
+  if(!mode %in% c("all", "parent", "child")) {
+    stop("mode must be one of all, parent or child")
+  }
+  if(! taxon %in% x[,trank]) {
+    stop("taxon is not present in column trank of x")
   }
 
   tx <- unique(x[which(x[,trank] == taxon), ranks])

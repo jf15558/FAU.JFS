@@ -53,7 +53,53 @@
 #' @export
 
 resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma",
-                           end = "min_ma", err = "age_flag", taxon = "genus", prop = 0.75, verbose = TRUE) {
+                           end = "min_ma", err = NULL, taxon = "genus", prop = 0.75, verbose = TRUE) {
+
+  if(!exists("x") | !exists("y")) {
+    stop("Both x and y must be supplied")
+  }
+  if(!is.data.frame(x) | !is.data.table(y)) {
+    stop("Both x and y must be dataframes")
+  }
+  if(!assemblage %in% colnames(x)) {
+    stop("assemblage must be a column name in x")
+  }
+  if(!all(c(taxon, srt, end) %in% colnames(x))) {
+    stop("Arguments genus, srt and end must all be column names in x and y")
+  }
+  if(!all(c(taxon, srt, end) %in% colnames(y))) {
+    stop("Arguments genus, srt and end must all be column names in x and y")
+  }
+  if(is.null(err)) {
+    err <- "age_flag"
+    x$age_flag <- rep("0R0", times = nrow(x))
+  } else {
+    if(!err %in% colnames(x)) {
+      stop("err must be a colum name in x")
+    }
+  }
+  if(length(taxon) > 1) {
+    stop("taxon must a character vector of length 1")
+  }
+  if(!all(class(x[,srt]) == "numeric", class(x[,end]) == "numeric",
+          class(y[,srt]) == "numeric", class(y[,end]) == "numeric")) {
+    stop("srt and end columns in x and y must all be numeric")
+  }
+  if(any(x[,srt] < x[,end])) {
+    stop("One or more maximum ages in x are smaller than their corresponding minimum ages")
+  }
+  if(any(y[,srt] < y[,end])) {
+    stop("One or more maximum ages in y are smaller than their corresponding minimum ages")
+  }
+  if(length(prop) != 1 | class(prop) != "numeric") {
+    stop("prop must be a numeric of length 1")
+  }
+  if(prop > 1 | prop < 0) {
+    stop("prop must be greater than 0 and less than or equal to 1")
+  }
+  if(prop < 0.5) {
+    warning("Prop is quite a low value - a minimum of 0.6 is desirable")
+  }
 
   # global variable workaround
   . <- lb <- ub <- b <- N <- .N <- .SD <- .EACHI <- NULL

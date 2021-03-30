@@ -7,7 +7,7 @@
 flag_ranges(
   x = NULL,
   y = NULL,
-  xcols = NULL,
+  xcols = c("genus", "max_ma", "min_ma"),
   ycols = NULL,
   alpha = 0.95,
   verbose = TRUE

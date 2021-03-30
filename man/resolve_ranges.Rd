@@ -10,7 +10,7 @@ resolve_ranges(
   assemblage = "collection_no",
   srt = "max_ma",
   end = "min_ma",
-  err = "age_flag",
+  err = NULL,
   taxon = "genus",
   prop = 0.75,
   verbose = TRUE

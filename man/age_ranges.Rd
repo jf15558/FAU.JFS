@@ -9,7 +9,7 @@ age_ranges(
   taxonomy = "genus",
   srt = "max_ma",
   end = "min_ma",
-  mode = c("max", "min", "bounds")
+  mode = "max"
 )
 }
 \arguments{

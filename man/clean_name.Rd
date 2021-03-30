@@ -7,7 +7,8 @@
 clean_name(x, terms = NULL, collapse = NULL)
 }
 \arguments{
-\item{x}{a character vector of names to clean}
+\item{x}{a vector of names to clean. This will be coerced to
+class character internally}
 
 \item{terms}{a character vector of terms to remove from
 elements of x. Terms are only removed as whole words, rather

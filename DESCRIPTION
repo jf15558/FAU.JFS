@@ -23,4 +23,6 @@ Imports:
     pbapply,
     stringdist,
     stringr,
-    BMS
+    BMS,
+    Matrix,
+    methods

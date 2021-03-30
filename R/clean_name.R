@@ -18,7 +18,8 @@
 #' space, any remaining strings longer than 2 words subsetted
 #' to the first word, the first letter of each string capitalised
 #' and zero length strings converted to NA
-#' @param x a character vector of names to clean
+#' @param x a vector of names to clean. This will be coerced to
+#' class character internally
 #' @param terms a character vector of terms to remove from
 #' elements of x. Terms are only removed as whole words, rather
 #' than if they also happen to occur as strings within elements
@@ -34,6 +35,15 @@
 #' @export
 
 clean_name <- function(x, terms = NULL, collapse = NULL) {
+
+  # check arguments
+  x <- as.character(x)
+  if(!is.null(terms)) {
+    terms <- as.character(terms)
+  }
+  if(!is.null(collapse)) {
+    collapse <- as.character(collapse)
+  }
 
   # set up important objects
   id_clean <- x

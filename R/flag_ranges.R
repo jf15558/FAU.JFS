@@ -45,26 +45,49 @@
 #' @import data.table
 #' @export
 
-flag_ranges <- function(x = NULL, y = NULL, xcols = NULL, ycols = NULL, alpha = 0.95, verbose = TRUE) {
+flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma"), ycols = NULL, alpha = 0.95, verbose = TRUE) {
 
   # check all information is supplied
   if(is.null(x) | is.null(y)) {
     stop("Please supply both x and y arguments")
   }
+  if(!is.data.frame(x) | !is.data.frame(y)) {
+    stop("x and y must both be dataframes")
+  }
   # if the dataframes have less than three columns supplied, break
   if(ncol(x) < 3 | ncol(y) < 3) {
     stop("Supplied dataframes do not contain enough data (at least name, FAD and LAD needed in both")
   }
-  if(ncol(x) > 3 | ncol(y) > 3) {
-    if(is.null(xcols)) {
-      stop("Please supply column names (either x, y or both")
-    }
-    if(is.null(ycols)) {
-      ycols <- xcols
+  if(length(xcols) != 3) {
+    stop("xcols must contain three elements")
+  }
+  if(is.null(ycols)) {
+    ycols <- xcols
+  } else {
+    if(length(ycols) != 3) {
+      stop("ycols must contain three elements")
     }
   }
+  if(!all(xcols %in% colnames(x))) {
+    stop("One or more elements of xcols are not column names in x")
+  }
+  if(!all(ycols %in% colnames(y))) {
+    stop("One or more elements of ycols are not column names in y")
+  }
+  if(class(x[,xcols[2]]) != "numeric" | class(x[,xcols[3]]) != "numeric") {
+    stop("Elements 2 and 3 of xcols must refer to numeric columns in x")
+  }
+  if(class(y[,ycols[2]]) != "numeric" | class(y[,ycols[3]]) != "numeric") {
+    stop("Elements 2 and 3 of ycols must refer to numeric columns in y")
+  }
+  if(length(alpha) != 1 | !is.numeric(alpha)) {
+    stop("Alpha must be a single numeric between 0 - 1, not inclusive")
+  }
   if(alpha <= 0 | alpha >= 1) {
-    stop("Alpha must be between 0 - 1, not inclusive")
+    stop("Alpha must be a single numeric between 0 - 1, not inclusive")
+  }
+  if(!all(length(verbose) == 1, class(verbose) == "logical")) {
+    stop("verbose must be one of TRUE or FALSE")
   }
   # global variable workaround for data.table syntax
   . <- NULL
