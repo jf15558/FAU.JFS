@@ -24,7 +24,7 @@ find_peaks <- function(x, win = 5) {
   if(!exists("x")) {
     stop("Please supply x as a matrix as outputted by densify")
   }
-  if(class(x) %in% c("matrix", "dgCMatrix", "Matrix")) {
+  if(class(x)[1] %in% c("matrix", "dgCMatrix", "Matrix")) {
     stop("Please supply x as a matrix as outputted by densify")
   }
   if(length(win) != 1) {
