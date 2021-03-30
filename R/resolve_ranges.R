@@ -58,7 +58,7 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma",
   if(!exists("x") | !exists("y")) {
     stop("Both x and y must be supplied")
   }
-  if(!is.data.frame(x) | !is.data.table(y)) {
+  if(!is.data.frame(x) | !is.data.frame(y)) {
     stop("Both x and y must be dataframes")
   }
   if(!assemblage %in% colnames(x)) {
