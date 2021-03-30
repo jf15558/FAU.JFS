@@ -41,7 +41,7 @@ densify <- function(x, rank = "genus", srt = "max_ma", end = "min_ma", step = 1,
   if(!is.data.frame(x)) {
     stop("x must be a dataframe")
   }
-  if(!all(c(rank, srt, end)) %in% colnames(x)) {
+  if(!all(c(rank, srt, end) %in% colnames(x))) {
     stop("One or more of rank, srt or end are not colnames in data")
   }
   if(class(step) != "numeric" | class(density) != "numeric") {
