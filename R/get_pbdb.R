@@ -514,9 +514,15 @@ get_pbdb <- function(taxon = NULL, interval = NULL, mode = "occurrence", res = "
       clad <- "LAD"
       # if the lad is missing, overwrite with the FAD
       dload[is.na(dload[,xlad]), xlad] <- dload[is.na(dload[,xlad]), xfad]
-      # overwrite FADs and LADs
-      dload[,xerl] <- tscale[match(dload[,xfad], tscale[,cinterval]), cfad]
-      dload[,xlte] <- tscale[match(dload[,xlad], tscale[,cinterval]), clad]
+      # get new FADs and LADs
+      new_fad <- tscale[match(dload[,xfad], tscale[,cinterval]), cfad]
+      new_lad <- tscale[match(dload[,xlad], tscale[,cinterval]), clad]
+      # in case of new intervals (which give NA), retain original date
+      new_fad[is.na(new_fad)] <- dload[is.na(new_fad),xerl]
+      new_lad[is.na(new_lad)] <- dload[is.na(new_lad),xlte]
+      # overwrite
+      dload[,xerl] <- new_fad
+      dload[,xlte] <- new_lad
     }
 
     # build kingdom field if classification was requested
