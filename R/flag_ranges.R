@@ -228,12 +228,8 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
           upr[,3] <- upr[,3] - 0.1
           upr$min[which(upr$min < yr$max[mt])] <- yr$min[mt]
           # this protects against precision error and needs to have inbuilt correction elsewhere
-          if(round(upr$max, digits = 2) != round(upr$min, digits = 2)) {
-            if(min(upr[,2] - upr[,3]) < 0.01) {
-              steps <- -(min(upr[,2] - upr[,3]))
-            } else {
-              steps <- -0.01
-            }
+          if(min(upr[,2] - upr[,3]) >= 0.1) {
+            steps <- -0.01
             upr <- as.vector(unlist(apply(upr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
             ud <- stats::density(c(upr, yr$max[mt]), from = yr$max[mt], to = max(upr))
             z$FAD95[i] <- BMS::quantile.coef.density(ud, probs = alpha)
@@ -249,12 +245,8 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
           lwr$max[which(lwr$max > yr$min[mt])] <- yr$min[mt]
 
           # this protects against precision error and needs to have inbuilt correction elsewhere
-          if(round(lwr$max, digits = 2) != round(lwr$min, digits = 2)) {
-            if(min(lwr[,2] - lwr[,3]) < 0.01) {
-              steps <- -(min(lwr[,2] - lwr[,3]))
-            } else {
-              steps <- -0.01
-            }
+          if(min(lwr[,2] - lwr[,3]) >= 0.01) {
+            steps <- -0.01
             lwr <- as.vector(unlist(apply(lwr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
             ld <- stats::density(c(yr$min[mt], lwr), from = min(lwr), to = yr$min[mt])
             z$LAD95[i] <- BMS::quantile.coef.density(ld, probs = 1 - alpha)
