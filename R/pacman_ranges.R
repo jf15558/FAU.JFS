@@ -174,9 +174,9 @@ pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
       out <- test2[,5:8]
     }
     tails <- do.call(cbind, lapply(tail.flag, function(z) {
-      dur <- abs(o2[,1] - o2[,2]) * z
-      fdist <- o2[,1] - o2[,3]
-      ldist <- o2[,2] - o2[,4]
+      dur <- abs(out[,1] - out[,2]) * z
+      fdist <- out[,1] - out[,3]
+      ldist <- out[,2] - out[,4]
       tdist <- fdist + ldist
       tail_logical <- as.numeric(tdist >= dur)
     }))
@@ -187,9 +187,9 @@ pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
   if (length(method) == 2) {
     o1 <- test2[,1:4]
     tails <- do.call(cbind, lapply(tail.flag, function(z) {
-      dur <- abs(o2[,1] - o2[,2]) * z
-      fdist <- o2[,1] - o2[,3]
-      ldist <- o2[,2] - o2[,4]
+      dur <- abs(o1[,1] - o1[,2]) * z
+      fdist <- o1[,1] - o1[,3]
+      ldist <- o1[,2] - o1[,4]
       tdist <- fdist + ldist
       tail_logical <- as.numeric(tdist >= dur)
     }))
