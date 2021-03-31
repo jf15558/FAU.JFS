@@ -1,10 +1,10 @@
 #' pacman_ranges
-#' 
+#'
 #' Function to apply a modification of Pacman trimming to
 #' macrofossil data. The function generates a densified
 #' occurrence record using the same methods as `densify`
 #' then trim the upper and lower ranges by a user-defined
-#' percentage. The full and trimmed ranges are then 
+#' percentage. The full and trimmed ranges are then
 #' compared against each other to test if the FAD and the
 #' LAD for a taxon form a long tail in its distribution.
 #' Multiple tail thresholds can be supplied, but all test
@@ -37,9 +37,9 @@
 #' @source Pacman procedure modified from https://rdrr.io/github/plannapus/CONOP9companion/src/R/pacman.R.
 #' @references Lazarus et al (2012) Paleobiology
 
-pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma", 
+pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
                            step = 1, density = 0.1, top = 5, bottom = 3, tail.flag = 0.25, method = c("histogram", "kernel")) {
-  
+
   if (!is.data.frame(x)) {
     stop("x must be a dataframe")
   }
@@ -61,7 +61,7 @@ pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
   if (density >= step) {
     warning("Density should ideally be smaller than step")
   }
-  if (class(x[, srt]) != "numeric" | class(x[, end]) != 
+  if (class(x[, srt]) != "numeric" | class(x[, end]) !=
       "numeric") {
     stop("Columns srt and end must be numeric")
   }
@@ -79,10 +79,10 @@ pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
   end_v <- floor(min(x[[end]]))
   x <- data.table::as.data.table(x)
   data.table::setkeyv(x, rank)
-  
+
   to_do <- stats::na.omit(unique(x[[rank]]))
   test <- pbsapply(to_do, simplify = FALSE, function(y) {
-    
+
     upr <- x[.(y), c("max_ma", "min_ma")]
     upr <- as.vector(unlist(apply(upr, 1, function(z) {
       seq(from = z[1], to = z[2], by = -density)
@@ -98,11 +98,11 @@ pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
     if (end_range != 0) {
       post_top <- rep(0, length(seq(from = end_range - step, to = end_v, by = -step)))
     }
-    
+
     # histogram
     bounds_h <- NULL
     if ("histogram" %in% method | "kernel" %in% method) {
-      
+
       # pacman count
       upr_h0 <- rev(hist(upr, breaks = bins, plot = FALSE)$counts)
       upr_h <- c(pre_base, upr_h0, post_top)
@@ -113,28 +113,28 @@ pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
       trimmed_h <- upr_h
       trimmed_h[!(cumsum(trimmed_h) >= nb_top & rev(cumsum(rev(trimmed_h))) >= nb_bottom)] <- 0
       #outlier_h <- outlier_h - trimmed_h
-      
+
       # skew count
       h1 <- which(diff(cumsum(upr_h)) != 0)
       h1 <- c(max(upr), min(upr))
       #h1 <- as.numeric(names(c(h1[1], h1[length(h1)]) + 1))
       h2 <- which(diff(cumsum(trimmed_h)) != 0)
       h2 <- as.numeric(names(c(h2[1], h2[length(h2)]) + 1))
-      if(h2[1] > h1[1] | is.infinite(k2[1])) {
+      if(h2[1] > h1[1] | is.infinite(h2[1])) {
         h2[1] <- h1[1]
       }
-      if(h2[2] < h1[2] | is.infinite(k2[1])) {
+      if(h2[2] < h1[2] | is.infinite(h2[1])) {
         h2[2] <- h1[2]
       }
       bounds_h <- c(h1, h2)
     }
-    
+
     bounds_k <- NULL
     if ("kernel" %in% method) {
       if (length(bins) < 3) {
         bounds_h <- bounds_k
       } else {
-        den <- density(upr, n = (length(bins) - 1), 
+        den <- density(upr, n = (length(bins) - 1),
                        from = end_range, to = start_range)
         if (sum(den$y) == 0) {
           den$y <- rep(1/length(bins - 1), times = length(bins) - 1)
@@ -163,7 +163,7 @@ pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
     }
     bounds <- c(bounds_h, bounds_k)
   })
-  
+
   # output
   test2 <- do.call(rbind, test)
   if (length(method) == 1) {
