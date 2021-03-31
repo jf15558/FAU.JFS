@@ -232,7 +232,7 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
           } else {
             steps <- -0.01
           }
-          upr <- unlist(apply(upr, 1, function(x) {seq(from = x[2], to = x[3], by = -0.1)}))
+          upr <- as.vector(unlist(apply(upr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
           ud <- stats::density(c(upr, yr$max[mt]), from = yr$max[mt], to = max(upr))
           z$FAD95[i] <- BMS::quantile.coef.density(ud, probs = alpha)
         }
@@ -247,7 +247,7 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
           } else {
             steps <- -0.01
           }
-          lwr <- unlist(apply(lwr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)}))
+          lwr <- as.vector(unlist(apply(lwr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
           ld <- stats::density(c(yr$min[mt], lwr), from = min(lwr), to = yr$min[mt])
           z$LAD95[i] <- BMS::quantile.coef.density(ld, probs = 1 - alpha)
         }
