@@ -227,14 +227,19 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
           # add very small constant to deal with zero range ages
           upr[,3] <- upr[,3] - 0.1
           upr$min[which(upr$min < yr$max[mt])] <- yr$min[mt]
-          if(min(upr[,2] - upr[,3]) < 0.01) {
-            steps <- -(min(upr[,2] - upr[,3]))
+          # this protects against precision error and needs to have inbuilt correction elsewhere
+          if(round(upr$max, digits = 2) != round(upr$min, digits = 2)) {
+            if(min(upr[,2] - upr[,3]) < 0.01) {
+              steps <- -(min(upr[,2] - upr[,3]))
+            } else {
+              steps <- -0.01
+            }
+            upr <- as.vector(unlist(apply(upr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
+            ud <- stats::density(c(upr, yr$max[mt]), from = yr$max[mt], to = max(upr))
+            z$FAD95[i] <- BMS::quantile.coef.density(ud, probs = alpha)
           } else {
-            steps <- -0.01
+            z$FAD95[i] <- yr$max[mt]
           }
-          upr <- as.vector(unlist(apply(upr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
-          ud <- stats::density(c(upr, yr$max[mt]), from = yr$max[mt], to = max(upr))
-          z$FAD95[i] <- BMS::quantile.coef.density(ud, probs = alpha)
         }
 
         if(z$status[i] %in% c("0R0", "1R0", "R00")) {
@@ -242,14 +247,20 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
           # add very small constant to deal with zero range ages
           lwr[,2] <- lwr[,2] + 0.1
           lwr$max[which(lwr$max > yr$min[mt])] <- yr$min[mt]
-          if(min(lwr[,2] - lwr[,3]) < 0.01) {
-            steps <- -(min(lwr[,2] - lwr[,3]))
+
+          # this protects against precision error and needs to have inbuilt correction elsewhere
+          if(round(lwr$max, digits = 2) != round(lwr$min, digits = 2)) {
+            if(min(lwr[,2] - lwr[,3]) < 0.01) {
+              steps <- -(min(lwr[,2] - lwr[,3]))
+            } else {
+              steps <- -0.01
+            }
+            lwr <- as.vector(unlist(apply(lwr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
+            ld <- stats::density(c(yr$min[mt], lwr), from = min(lwr), to = yr$min[mt])
+            z$LAD95[i] <- BMS::quantile.coef.density(ld, probs = 1 - alpha)
           } else {
-            steps <- -0.01
+            z$LAD95[i] <- yr$min[mt]
           }
-          lwr <- as.vector(unlist(apply(lwr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
-          ld <- stats::density(c(yr$min[mt], lwr), from = min(lwr), to = yr$min[mt])
-          z$LAD95[i] <- BMS::quantile.coef.density(ld, probs = 1 - alpha)
         }
       }
     }
