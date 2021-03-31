@@ -6,7 +6,7 @@
 #' depending on the argument specification, although
 #' future versions may be adapted to allow any single rank
 #' to be made focal, with parent or child relationships
-#' retained in the tvertseq
+#' retained in the tvertseq.
 #' @param x A tgraph object
 #' @param mode A character vector of length one specifying
 #' whether parent or child relationships will be recorded

@@ -26,5 +26,5 @@ elements can be coerced to focal elements in a tvertseq,
 depending on the argument specification, although
 future versions may be adapted to allow any single rank
 to be made focal, with parent or child relationships
-retained in the tvertseq
+retained in the tvertseq.
 }
