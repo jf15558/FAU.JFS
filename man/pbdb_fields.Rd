@@ -3,22 +3,14 @@
 \docType{data}
 \name{pbdb_fields}
 \alias{pbdb_fields}
-\title{pbdb_fields}
+\title{geog_lookup}
 \format{
 An object of class \code{list} of length 31.
 }
-\source{
-\href{https://paleobiodb.org/data1.2/occs/list_doc.html}{PBDB fields}
-}
 \usage{
-data(pbdb_fields)
+pbdb_fields
 }
 \description{
-A lookup list of pbdb vocabulary for valid data fields
-As in the PBDB, sets of three letter field codes are
-grouped into larger field sets, each with a further
-three letter code. These field set codes are the list
-names. Data can be inspected by the user, but exists
-primarily as a support for get_pbdb
+lookup table called by 'get_pbdb'
 }
 \keyword{datasets}

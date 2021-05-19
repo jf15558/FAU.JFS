@@ -6,6 +6,7 @@
 #' @return A dataframe of the vertex names in x, along
 #' with their attributes
 #' @import igraph
+#' @importFrom utils head
 #' @importFrom stats na.omit
 #' @importFrom dplyr bind_rows
 #' @importFrom data.table setDF .SD
