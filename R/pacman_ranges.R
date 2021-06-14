@@ -126,6 +126,8 @@ pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
       if(h2[2] < h1[2] | is.infinite(h2[1])) {
         h2[2] <- h1[2]
       }
+      if(h1[1] - h2[1] <= step) {h2[1] <- h1[1]}
+      if(h2[2] - h1[2] <= step) {h2[2] <- h1[2]}
       bounds_h <- c(h1, h2)
     }
 
@@ -150,6 +152,8 @@ pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
         if(k2[2] < k1[2] | is.infinite(k2[1])) {
           k2[2] <- k1[2]
         }
+        if(k1[1] - k2[1] <= step) {k2[1] <- k1[1]}
+        if(k2[2] - k1[2] <= step) {k2[2] <- k1[2]}
         bounds_k <- c(k1, k2)
         # pacman count
         #upr_k <- den$y
