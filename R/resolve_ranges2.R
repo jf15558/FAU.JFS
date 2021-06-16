@@ -152,9 +152,12 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
     # extract range chart taxa
     foo <- y[match(occs2[,taxon], y[,taxon]), c(taxon, srt, end)]
     foo <- foo[stats::complete.cases(foo),]
+    tprop <- NA
+    revise <- TRUE
 
-    # if there are range chart taxa, test for a full overlapping range
+    # if there are range chart taxa, test for an overlapping range
     if(nrow(foo) != 0) {
+
       # god-like solution from https://stackoverflow.com/questions/66754356/finding-the-overlapping-range-of-a-set-of-vectors-in-r/66758534#66758534
       dt <- data.table(lb = foo[[3]], ub = foo[[2]])
       mdt <- dt[, .(b = unique(unlist(.SD)))]
@@ -172,55 +175,55 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
         sol2 <- rbind(ores, res)
         sol2 <- sol2[order(sol2[,1], decreasing = TRUE),]
 
-        # if there is any overlap, including a pointwise overlap e.g. assemblage LAD = 21, overlap FAD = 21
-        if(sol2[2,1] >= sol2[1,2] & sol2[2, 1] < sol2[1, 1]) {
+        # if pointwise overlap in ages has been allowed, go ahead and assess overlap, taking the revised age if no overlap with assemblage age
+        if(allow.zero) {
 
-          # if the overlap is pointwise..
-          if(sol2[2,1] == sol2[1,2]) {
-
-            # .. and if pointwise overlaps have been allowed
-            if(allow.zero) {
-              sol2 <- c(min(sol2[,1]), max(sol2[,2]))
-
-            # otherwise take the revised age rather than the assemblage-overlap intersection
-            } else {
-              sol2 <- res
-            }
-
-          # if the overlap is not pointwise, take it by default
-          } else {
+          if(sol2[2,1] >= sol2[1,2]) {
             sol2 <- c(min(sol2[,1]), max(sol2[,2]))
-          }
+          } else {sol2 <- res}
 
-        # if there is no overlap, take the revised age
+        # if pointwise overlaps have not been allowed, test if overlap is pointwise
         } else {
-          sol2 <- res
-        }
-        # update assemblage age and revision status
-        z[zpos, c("FAD", "LAD")] <- sol2
-        z[zpos, "revision"] <- "revised"
-        z[zpos, "prop"] <- tprop
-        FAD[occs$rnum] <- sol2[1]
-        LAD[occs$rnum] <- sol2[2]
 
-        # test for occurrences to flag
-        if(tprop != 1) {
-          foo2 <- foo[which((foo$max_ma > res[1] & foo$min_ma >= res[1]) |
-                              (foo$max_ma <= res[2] & foo$min_ma < res[2])),taxon]
-          tax_flag[occs$rnum[which(occs[,taxon] %in% foo2)]] <- 1
-        }
+          # if there are no pointwise overlaps
+          if(res[1] != res[1] & sol2[2,1] != sol2[1,2]) {
 
-      } else {
-        z[zpos, "prop"] <- tprop
-        z[zpos, "revision"] <- "unresolved"
-        tax_flag[occs$rnum] <- 1
+            # if the assemblage and consensus ages overlap, take the overlap, otherwise take the revised age
+            if(sol2[2,1] >= sol2[1,2]) {
+              sol2 <- c(min(sol2[,1]), max(sol2[,2]))
+            # otherwise take the consensus age
+            } else {sol2 <- res}
+
+          # otherwise pointwise overlaps have been disallowed so ignore
+          } else {revise = FALSE}
+        }
+      # otherwise the proportion is not high enough so ignore
+      } else {revise = FALSE}
+
+    # otherwise there are no taxa to inform revision, so ignore
+    } else {revise <- FALSE}
+
+    # if a solution has been found, revise
+    if(revise) {
+
+      # update assemblage age and revision status
+      z[zpos, c("FAD", "LAD")] <- sol2
+      z[zpos, "revision"] <- "revised"
+      z[zpos, "prop"] <- tprop
+      FAD[occs$rnum] <- sol2[1]
+      LAD[occs$rnum] <- sol2[2]
+      # test for occurrences to flag
+      if(tprop != 1) {
+        foo2 <- foo[which((foo$max_ma > res[1] & foo$min_ma >= res[1]) |
+                            (foo$max_ma <= res[2] & foo$min_ma < res[2])),taxon]
+        tax_flag[occs$rnum[which(occs[,taxon] %in% foo2)]] <- 1
       }
 
-
+    # otherwise assign unrevised
     } else {
-      z[zpos, "prop"] <- 0
+      z[zpos, "prop"] <- tprop
       z[zpos, "revision"] <- "unresolved"
-      tax_flag[occs$rnum] <- 1
+      tax_flag[occs$rnum] <- NA
     }
 
     # notify R
