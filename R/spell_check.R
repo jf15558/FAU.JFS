@@ -233,7 +233,15 @@ spell_check <- function(x, terms = NULL, groups = NULL, jw = 0.1, str = 1, str2 
   # do qgram score
   val <- apply(err, 1, function(y) {afind(y[1], y[2], method = method2, q = q)$distance})
   err2 <- cbind.data.frame(err, val)
+
+  # return
   row.names(err2) <- NULL
-  colnames(err2) <- c("t1", "t2", "group", "freq1", "freq2", "m2")
+  if(nrow(err2) == 0) {
+    message("No synonyms flagged, returning NULL")
+    err2 <- NULL
+  } else {
+    colnames(err2) <- c("t1", "t2", "group",
+                        "freq1", "freq2", "m2")
+  }
   return(err2)
 }
