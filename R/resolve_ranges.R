@@ -238,15 +238,15 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
         LAD_diff[rnum2] <- LAD[rnum2] - LAD1[rnum2]
 
         # collection-wise flagging
-        if(nrow(foo2) != 0 & nrow(foo3) != 0) {
+        if(length(foo2) != 0 & length(foo3) != 0) {
           coll_flag <- "0R0"
           z[i, "status"] <- "0R0"
         } else {
-          if(nrow(foo2) != 0) {
+          if(length(foo2) != 0) {
             coll_flag <- "00R"
             z[i, "status"] <- "00R"
           }
-          if(nrow(foo3) != 0) {
+          if(length(foo3) != 0) {
             coll_flag <- "R00"
             z[i, "status"] <- "R00"
           }
