@@ -72,14 +72,14 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
   if(!all(c(taxon, srt, end) %in% colnames(y))) {
     stop("Arguments genus, srt and end must all be column names in x and y")
   }
-  if(is.null(err)) {
-    err <- "age_flag"
-    x$age_flag <- rep("0R0", times = nrow(x))
-  } else {
-    if(!err %in% colnames(x)) {
-      stop("err must be a colum name in x")
-    }
-  }
+  #if(is.null(err)) {
+  #  err <- "age_flag"
+  #  x$age_flag <- rep("0R0", times = nrow(x))
+  #} else {
+  #  if(!err %in% colnames(x)) {
+  #    stop("err must be a colum name in x")
+  #  }
+  #}
   if(length(taxon) > 1) {
     stop("taxon must a character vector of length 1")
   }
