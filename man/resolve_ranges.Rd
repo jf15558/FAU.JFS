@@ -10,9 +10,9 @@ resolve_ranges(
   assemblage = "collection_no",
   srt = "max_ma",
   end = "min_ma",
-  err = NULL,
   taxon = "genus",
   prop = 0.75,
+  allow.zero = TRUE,
   verbose = TRUE
 )
 }
@@ -34,9 +34,6 @@ this same name for that column}
 each element in both x and y - i.e. x and y must have
 this same name for that column}
 
-\item{err}{The column name flagging age errors for
-occurrences in x. Age errors can be derived using}
-
 \item{taxon}{The column name denoting the taxon names
 in both x and y - i.e. x and y must have
 this same name for that column}
@@ -44,6 +41,15 @@ this same name for that column}
 \item{prop}{A numeric, between 0 and 1, denoting the
 threshold percentage of taxa in the assemblage for
 which a consensus age must be found}
+
+\item{allow.zero}{A logical determining if, in the
+case of a collection LAD being equal to the consensus
+age FAD (i.e. a pointwise overlap), that pointwise
+age will be taken as the revised age. The resultant
+collection age will have no uncertainty as a result,
+which may be unrealistic. The default behaviour is
+FALSE, in which case pointwise overlaps will be
+ignored and the revised age taken instead}
 
 \item{verbose}{A logical determining if the progress
 of the redating procedure should be reported}
@@ -73,10 +79,4 @@ the complete consensus age is returned. If a
 consensus age cannot be found, the original assemblage
 age is returned, and each occurrence in the collection
 flagged as potential taxonomic errors.
-}
-\seealso{
-flag_ranges. Otherwise, this can be
-fudged by adding an error column to x which will
-result in each collection being assessed:
-\verb{x$err <- rep("0R0, times = nrow(x))}
 }

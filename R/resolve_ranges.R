@@ -30,18 +30,20 @@
 #' @param end The column name of stratigraphic tops for
 #' each element in both x and y - i.e. x and y must have
 #' this same name for that column
-#' @param err The column name flagging age errors for
-#' occurrences in x. Age errors can be derived using
-#' @seealso flag_ranges. Otherwise, this can be
-#' fudged by adding an error column to x which will
-#' result in each collection being assessed:
-#' `x$err <- rep("0R0, times = nrow(x))`
 #' @param taxon The column name denoting the taxon names
 #' in both x and y - i.e. x and y must have
 #' this same name for that column
 #' @param prop A numeric, between 0 and 1, denoting the
 #' threshold percentage of taxa in the assemblage for
 #' which a consensus age must be found
+#' @param allow.zero A logical determining if, in the
+#' case of a collection LAD being equal to the consensus
+#' age FAD (i.e. a pointwise overlap), that pointwise
+#' age will be taken as the revised age. The resultant
+#' collection age will have no uncertainty as a result,
+#' which may be unrealistic. The default behaviour is
+#' FALSE, in which case pointwise overlaps will be
+#' ignored and the revised age taken instead
 #' @param verbose A logical determining if the progress
 #' of the redating procedure should be reported
 #' @return A list of two dataframes, the first recording
@@ -52,8 +54,8 @@
 #' @importFrom stats complete.cases
 #' @export
 
-resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma",
-                           end = "min_ma", err = NULL, taxon = "genus", prop = 0.75, verbose = TRUE) {
+resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", end = "min_ma", taxon = "genus",
+                           prop = 0.75, allow.zero = TRUE, verbose = TRUE) {
 
   if(!exists("x") | !exists("y")) {
     stop("Both x and y must be supplied")
@@ -103,98 +105,176 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma",
 
   # global variable workaround
   . <- lb <- ub <- b <- N <- .N <- .SD <- .EACHI <- NULL
+
   # tabulate error codes in each collection (ignoring uncoded and correct ages R1R, 000)
-  codes <- c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0")
-  tabs <- data.frame(unique(x[,assemblage]), NA, NA, NA, NA, NA, NA, NA)
-  for(i in 1:length(codes)) {
-    vals <- tapply(x[,err], x[,assemblage], function(x) {length(which(x == codes[i]))})
-    tabs[,i + 1] <- vals[match(tabs$unique.x...assemblage.., as.numeric(names(vals)))]
-  }
-  colnames(tabs) <- c("assemblage", codes)
+  #codes <- c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0")
+  #tabs <- data.frame(unique(x[,assemblage]), NA, NA, NA, NA, NA, NA, NA)
+  #for(i in 1:length(codes)) {
+  #  vals <- tapply(x[,err], x[,assemblage], function(x) {length(which(x == codes[i]))})
+  #  tabs[,i + 1] <- vals[match(tabs$unique.x...assemblage.., as.numeric(names(vals)))]
+  #}
+  #colnames(tabs) <- c("assemblage", codes)
 
   # objects to store output. This is initialised with the assemblage ages as given in the PBDB
   # and nodes for unrevised (revision = 0) and 100% congruency (prop = 1).
   # 1 revision = "revised", 2 revision = "unsolved"
-  z <- data.frame(tabs$assemblage, NA, NA, "valid", 1)
-  colnames(z) <- c("assemblage", "FAD", "LAD", "revision", "prop")
-  z$FAD <- x[match(tabs$assemblage, x[,assemblage]), srt]
-  z$LAD <- x[match(tabs$assemblage, x[,assemblage]), end]
-  FAD <- x[,(srt)]
-  LAD <- x[,(end)]
-  tax_flag <- FAD
-  tax_flag[] <- 0
+  #z <- data.frame(tabs$assemblage, NA, NA, "valid", 1)
+  z <- data.frame(unique(x[,assemblage]), NA, NA, NA, "000", NA)
+  colnames(z) <- c("assemblage", "FAD", "LAD", "revision", "status", "prop")
+  z$FAD <- x[match(z$assemblage, x[,assemblage]), srt]
+  z$LAD <- x[match(z$assemblage, x[,assemblage]), end]
+  FAD1 <- FAD <- x[,(srt)]
+  LAD1 <- LAD <- x[,(end)]
+  tax_flag <- FAD_diff <- LAD_diff <- FAD
+  tax_flag[] <- "000"
+  FAD_diff[] <- LAD_diff[] <- NA
 
   # find assemblages with errors
-  to_do <- apply(tabs[,4:ncol(tabs)], 1, sum)
-  to_do <- tabs$assemblage[which(to_do != 0)]
+  #to_do <- apply(tabs[,4:ncol(tabs)], 1, sum)
+  #to_do <- tabs$assemblage[which(to_do != 0)]
   # convert to data.table for rapid indexing
   x$rnum <- 1:nrow(x)
   x1 <- data.table::data.table(x)
   data.table::setkeyv(x1, assemblage)
 
   # for the incorrect assemblages, find the consensus if possible
-  for(i in 1:length(to_do)) {
+  #for(i in 1:length(to_do)) {
+  for(i in 1:nrow(z)) {
 
     # select assemblage occurrences and trim to unique values
-    occs <- as.data.frame(x1[.(to_do[i]),])
+    #occs <- as.data.frame(x1[.(to_do[i]),])
+    occs <- as.data.frame(x1[.(z$assemblage[i]),])
     occs2 <- unique(occs[,c(taxon, srt, end)])
     occs2 <- occs2[stats::complete.cases(occs2),]
-    zpos <- match(to_do[i], z$assemblage)
 
-    # extract range chart taxa and test for a full overlapping range
+    # extract range chart taxa
     foo <- y[match(occs2[,taxon], y[,taxon]), c(taxon, srt, end)]
     foo <- foo[stats::complete.cases(foo),]
-    # god-like solution from https://stackoverflow.com/questions/66754356/finding-the-overlapping-range-of-a-set-of-vectors-in-r/66758534#66758534
-    dt <- data.table(lb = foo[[3]], ub = foo[[2]])
-    mdt <- dt[, .(b = unique(unlist(.SD)))]
-    sol <- dt[mdt, on = .(lb <= b, ub >= b), .N, by = .EACHI]
-    tprop <- max(sol$N) / nrow(foo)
+    tprop <- NA
+    revise <- TRUE
+    resolution <- "Revised"
 
-    # if the returned interval covers the proportion of taxa prop
-    # (N = 1 means that there are no overlaps between any ranges)
-    if(tprop >= prop) {
+    # if there are range chart taxa, test for an overlapping range
+    if(nrow(foo) != 0) {
 
-      # get the old age boundary
-      ores <- as.vector(z[zpos, c("FAD", "LAD")])
-      # get the assemblage span
-      res <- rev(sol[N == max(N), range(lb)])
-      # take the overlap if present, otherwise take the fully revised age
-      sol2 <- rbind(ores, res)
-      sol2 <- sol2[order(sol2[,1], decreasing = TRUE),]
-      if(sol2[2,1] >= sol2[1,2]) {
-        sol2 <- c(min(sol2[,1]), max(sol2[,2]))
+      # god-like solution from https://stackoverflow.com/questions/66754356/finding-the-overlapping-range-of-a-set-of-vectors-in-r/66758534#66758534
+      dt <- data.table(lb = foo[[3]], ub = foo[[2]])
+      mdt <- dt[, .(b = unique(unlist(.SD)))]
+      sol <- dt[mdt, on = .(lb <= b, ub >= b), .N, by = .EACHI]
+      tprop <- max(sol$N) / nrow(foo)
+
+      # if the returned interval covers the proportion of taxa prop
+      # (N = 1 means that there are no overlaps between any ranges)
+      if(tprop >= prop) {
+
+        # get the old age boundary
+        ores <- as.vector(z[i, c("FAD", "LAD")])
+        # get the assemblage span
+        res <- rev(sol[N == max(N), range(lb)])
+        sol2 <- rbind(ores, res)
+        sol2 <- sol2[order(sol2[,1], decreasing = TRUE),]
+
+        # if pointwise overlap in ages has been allowed, go ahead and assess overlap, taking the revised age if no overlap with assemblage age
+        if(allow.zero) {
+
+          if(sol2[2,1] >= sol2[1,2]) {
+            sol2 <- c(min(sol2[,1]), max(sol2[,2]))
+          } else {sol2 <- res}
+
+        # if pointwise overlaps have not been allowed,
+        } else {
+
+          # if there are no pointwise overlaps
+          if(res[1] != res[1] & sol2[2,1] != sol2[1,2]) {
+
+            # if the assemblage and consensus ages overlap, take the overlap, otherwise take the revised age
+            if(sol2[2,1] >= sol2[1,2]) {
+              sol2 <- c(min(sol2[,1]), max(sol2[,2]))
+            # otherwise take the consensus age
+            } else {sol2 <- res}
+
+          # otherwise pointwise overlaps have been disallowed so ignore
+          } else {
+            revise <- FALSE
+            revision <- "Unresolved"
+          }
+        }
+
+      # otherwise the proportion is not high enough so ignore
       } else {
-        sol2 <- res
+        revise <- FALSE
+        revision <- "Unresolved"
       }
+
+    # otherwise there are no taxa to inform revision, so ignore
+    } else {
+      revise <- FALSE
+      revision <- "Unrevised"
+    }
+
+    # if a solution has been found, revise
+    if(revise) {
+
       # update assemblage age and revision status
-      z[zpos, c("FAD", "LAD")] <- sol2
-      z[zpos, "revision"] <- "revised"
-      z[zpos, "prop"] <- tprop
+      z[i, c("FAD", "LAD")] <- sol2
+      z[i, "revision"] <- revision
+      z[i, "prop"] <- tprop
       FAD[occs$rnum] <- sol2[1]
       LAD[occs$rnum] <- sol2[2]
 
-      # test for occurrences to flag
+      # flag occurrences if the consensus is not 100%
       if(tprop != 1) {
-        foo2 <- foo[which((foo$max_ma > res[1] & foo$min_ma >= res[1]) |
-                            (foo$max_ma <= res[2] & foo$min_ma < res[2])),taxon]
-        tax_flag[occs$rnum[which(occs[,taxon] %in% foo2)]] <- 1
+
+        # occurrences exceeding FAD or LAD
+        foo2 <- foo[which((foo$max_ma > res[1] & foo$min_ma >= res[1])),taxon]
+        foo3 <- foo[which((foo$max_ma <= res[2] & foo$min_ma < res[2])),taxon]
+        rnum1 <- occs$rnum[which(occs[,taxon] %in% foo2)]
+        rnum2 <- occs$rnum[which(occs[,taxon] %in% foo3)]
+
+        # taxon-wise flagging
+        tax_flag[rnum1] <- "00R"
+        tax_flag[rnum2] <- "R00"
+        FAD_diff[rnum1] <- FAD1[rnum1] - FAD[rnum1]
+        LAD_diff[rnum2] <- LAD[rnum2] - LAD1[rnum2]
+
+        # collection-wise flagging
+        if(nrow(foo2) != 0 & nrow(foo3) != 0) {
+          coll_flag <- "0R0"
+          z[i, "status"] <- "0R0"
+        } else {
+          if(nrow(foo2) != 0) {
+            coll_flag <- "00R"
+            z[i, "status"] <- "00R"
+          }
+          if(nrow(foo3) != 0) {
+            coll_flag <- "R00"
+            z[i, "status"] <- "R00"
+          }
+        }
+
+      # otherwise the revision is completely consistent
+      } else {
+        tax_flag[occs$rnum] <- "R1R"
+        tax_flag[occs$rnum] <- "R1R"
+        z[i, "status"] <- "R1R"
       }
 
+    # otherwise assign unrevised
     } else {
-      z[zpos, "prop"] <- tprop
-      z[zpos, "revision"] <- "unresolved"
-      tax_flag[occs$rnum] <- 1
+      z[i, "prop"] <- tprop
+      z[i, "revision"] <- revision
     }
+
     # notify R
     if(verbose) {
       if(i != 1) {cat(paste0("\r"))}
-      cat(paste0("Assemblage ", i, "/", length(to_do), " checked"))
+      cat(paste0("Assemblage ", i, "/", nrow(z), " checked"))
     }
   }
 
   # return
-  per_occ <- cbind.data.frame(FAD, LAD, tax_flag)
-  colnames(per_occ) <- c("FAD", "LAD", "tax_flag")
+  per_occ <- cbind.data.frame(FAD, LAD, FAD_diff, LAD_diff, tax_flag)
+  colnames(per_occ) <- c("FAD", "LAD", "FAD_diff", "LAD_diff", "tax_flag")
   out <- list()
   out[[1]] <- z
   out[[2]] <- per_occ
