@@ -158,7 +158,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
     sol_out <- ores <- unlist(z[i, c("FAD", "LAD")])
     tprop <- NA
     revise <- TRUE
-    resolution <- "Revised"
+    revision <- "Revised"
 
     # if there are taxa to use for checking
     if (nrow(foo) != 0) {
@@ -179,7 +179,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
           res <- rev(sol[N == max(N), range(lb)])
           # if the solution is no better than the original age
           if(res[1] >= ores[1] & res[2] <= ores[2]) {
-            resolution <- "Retained"
+            revision <- "Retained"
             tprop <- 1
           # otherwise check for overlaps, taking the overlap if present
           } else {
@@ -213,7 +213,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
 
             # if the solution is no better than the original age
             if(res[1] >= ores[1] & res[2] <= ores[2]) {
-              resolution <- "Retained"
+              revision <- "Retained"
               tprop <- 1
               # otherwise check for overlaps, taking the overlap if present
             } else {
