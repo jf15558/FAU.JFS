@@ -124,7 +124,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
   colnames(tabs) <- c("assemblage", codes)
 
   # objects to store output
-  z <- data.frame(unique(x[,assemblage]), NA, NA, "Revised", "000", NA)
+  z <- data.frame(unique(x[,assemblage]), NA, NA, "Unchecked", "000", NA)
   colnames(z) <- c("assemblage", "FAD", "LAD", "revision", "status", "prop")
   z$FAD <- x[match(z$assemblage, x[,assemblage]), srt]
   z$LAD <- x[match(z$assemblage, x[,assemblage]), end]
