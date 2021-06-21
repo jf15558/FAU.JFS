@@ -1,4 +1,4 @@
-#' resolve_ranges
+#' resolve_ranges2
 #'
 #' Function to generate a consensus age for assemblages
 #' of fossil data in x, given a table of taxonomic
@@ -34,11 +34,14 @@
 #' in both x and y - i.e. x and y must have
 #' this same name for that column
 #' @param err The column name flagging age errors for
-#' occurrences in x. Age errors can be derived using
-#' @seealso flag_ranges. Otherwise, this can be
-#' fudged by adding an error column to x which will
-#' result in each collection being assessed:
-#' `x$err <- rep("0R0, times = nrow(x))`
+#' occurrences in x. This allows 100$ valid assemblages to
+#' be skipped. Age errors can be derived using @seealso
+#' flag_ranges. All error codes must be one of: "000" -
+#' unchecked, "R1R" - valid, "0R0" - both FAD and LAD exceeded,
+#' "00R" - totally older than range, "R00" - totally younger
+#' than range, "01R" - FAD exceeded, "1R0" - LAD exceeded.
+#' If not supplied, all assemblages will be checked, even if
+#' they are already valid a priori.
 #' @param prop A numeric, between 0 and 1, denoting the
 #' threshold percentage of taxa in the assemblage for
 #' which a consensus age must be found
@@ -60,7 +63,7 @@
 #' @importFrom stats complete.cases
 #' @export
 
-resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", end = "min_ma", taxon = "genus",
+resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", end = "min_ma", taxon = "genus",
                            err = NULL, prop = 0.75, allow.zero = TRUE, verbose = TRUE) {
 
   if(!exists("x") | !exists("y")) {
@@ -73,21 +76,27 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
     stop("assemblage must be a column name in x")
   }
   if(!all(c(taxon, srt, end) %in% colnames(x))) {
-    stop("Arguments genus, srt and end must all be column names in x and y")
+    stop("Arguments taxon, srt and end must all be the same column names in x and y")
   }
   if(!all(c(taxon, srt, end) %in% colnames(y))) {
-    stop("Arguments genus, srt and end must all be column names in x and y")
+    stop("Arguments taxon, srt and end must all be the same column names in x and y")
   }
   if(is.null(err)) {
     err <- "age_flag"
     x$age_flag <- rep("0R0", times = nrow(x))
   } else {
     if(!err %in% colnames(x)) {
-      stop("err must be a colum name in x")
+      stop("err must be a column name in x")
+    }
+    if(!all(unique(err) %in% c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0"))) {
+      stop("err contains a non-standard error code (see documentation")
     }
   }
-  if(length(taxon) > 1) {
-    stop("taxon must a character vector of length 1")
+  if(any(is.na(x[,c(taxon, srt, end, err)]))) {
+    stop("One or more values in the specified columns in x are NA")
+  }
+  if(any(is.na(y[,c(taxon, srt, end, err)]))) {
+    stop("One or more values in the specified columns in y are NA")
   }
   if(!all(class(x[,srt]) == "numeric", class(x[,end]) == "numeric",
           class(y[,srt]) == "numeric", class(y[,end]) == "numeric")) {
@@ -105,10 +114,9 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
   if(prop > 1 | prop < 0) {
     stop("prop must be greater than 0 and less than or equal to 1")
   }
-  if(prop < 0.5) {
-    warning("Prop is quite a low value - a minimum of 0.6 is desirable")
+  if(prop < 0.5 & verbose) {
+    warning("Prop is quite a low value - a minimum of 0.6 may be desirable")
   }
-
   # global variable workaround
   . <- lb <- ub <- b <- N <- .N <- .SD <- .EACHI <- NULL
 
@@ -121,10 +129,8 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
   }
   colnames(tabs) <- c("assemblage", codes)
 
-  # objects to store output. This is initialised with the assemblage ages as given in the PBDB
-  # and nodes for unrevised (revision = 0) and 100% congruency (prop = 1).
-  # 1 revision = "revised", 2 revision = "unsolved"
-  z <- data.frame(unique(x[,assemblage]), NA, NA, NA, "000", NA)
+  # objects to store output
+  z <- data.frame(unique(x[,assemblage]), NA, NA, "Revised", "000", NA)
   colnames(z) <- c("assemblage", "FAD", "LAD", "revision", "status", "prop")
   z$FAD <- x[match(z$assemblage, x[,assemblage]), srt]
   z$LAD <- x[match(z$assemblage, x[,assemblage]), end]
@@ -142,86 +148,113 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
   x1 <- data.table::data.table(x)
   data.table::setkeyv(x1, assemblage)
 
-  # for the incorrect assemblages, find the consensus if possible
-  #for(i in 1:length(to_do)) {
+  # if there are range chart taxa, test for an overlapping range, assigning Unchecked > Unresolved > Retained > Revised
   for(i in 1:length(to_do)) {
 
-    # select assemblage occurrences and trim to unique values
-    occs <- as.data.frame(x1[.(to_do[i]),])
-    #occs <- as.data.frame(x1[.(z$assemblage[i]),])
-    occs2 <- unique(occs[,c(taxon, srt, end)])
-    occs2 <- occs2[stats::complete.cases(occs2),]
+    # get assemblage occs
+    occs <- as.data.frame(x1[.(z$assemblage[i]), ])
+    # trim to unique, named taxa and get (if any) matches in the comparative database
+    occs2 <- unique(occs[, c(taxon, srt, end)])
+    occs2 <- occs2[stats::complete.cases(occs2), ]
+    foo <- y[match(occs2[, taxon], y[, taxon]), c(taxon, srt, end)]
+    foo <- foo[stats::complete.cases(foo), ]
     zpos <- match(to_do[i], z$assemblage)
 
-    # extract range chart taxa
-    foo <- y[match(occs2[,taxon], y[,taxon]), c(taxon, srt, end)]
-    foo <- foo[stats::complete.cases(foo),]
+    # set defaults (default age solution is current assemblage age)
+    sol2 <- ores <- as.vector(z[i, c("FAD", "LAD")])
     tprop <- NA
     revise <- TRUE
     resolution <- "Revised"
 
-    # if there are range chart taxa, test for an overlapping range
-    if(nrow(foo) != 0) {
+    # if there are taxa to use for checking
+    if (nrow(foo) != 0) {
 
-      # god-like solution from https://stackoverflow.com/questions/66754356/finding-the-overlapping-range-of-a-set-of-vectors-in-r/66758534#66758534
       dt <- data.table(lb = foo[[3]], ub = foo[[2]])
       mdt <- dt[, .(b = unique(unlist(.SD)))]
       sol <- dt[mdt, on = .(lb <= b, ub >= b), .N, by = .EACHI]
-      tprop <- max(sol$N) / nrow(foo)
+      sol$N <- sol$N / nrow(foo)
 
-      # if the returned interval covers the proportion of taxa prop
-      # (N = 1 means that there are no overlaps between any ranges)
-      if(tprop >= prop) {
+      # if there are any solutions above the threshold
+      if(any(sol$N >= prop)) {
 
-        # get the old age boundary
-        ores <- as.vector(z[i, c("FAD", "LAD")])
-        # get the assemblage span
-        res <- rev(sol[N == max(N), range(lb)])
-        sol2 <- rbind(ores, res)
-        sol2 <- sol2[order(sol2[,1], decreasing = TRUE),]
-
-        # if pointwise overlap in ages has been allowed, go ahead and assess overlap, taking the revised age if no overlap with assemblage age
+        # if zero-length spans are allowed
         if(allow.zero) {
 
-          if(sol2[2,1] >= sol2[1,2]) {
-            sol2 <- c(min(sol2[,1]), max(sol2[,2]))
-          } else {sol2 <- res}
+          # get the most inclusive solution
+          res <- rev(sol[N == max(N), range(lb)])
+          # if the solution is no better than the original age
+          if(res[1] >= ores[1] & res[2] <= ores[2]) {
+            resolution <- "Retained"
+            tprop <- 1
+            # otherwise check for overlaps, taking the overlap if present
+          } else {
+            sol2 <- rbind(ores, res)
+            sol2 <- sol2[order(sol2[, 1], decreasing = TRUE),]
+            if (sol2[2, 1] >= sol2[1, 2]) {
+              sol2 <- c(min(sol2[, 1]), max(sol2[, 2]))
+            } else {
+              sol2 <- res
+            }
+            tprop <- max(sol$N)
+          }
 
-        # if pointwise overlaps have not been allowed,
+          # if zero-length spans are not allowed
         } else {
 
-          # if there are no pointwise overlaps
-          if(res[1] != res[1] & sol2[2,1] != sol2[1,2]) {
+          # check non-zero combinations where each boundary exceeds the proportion
+          nz_sols <- list()
+          sol <- as.matrix(sol)
+          sol <- sol[which(sol$N >= prop),]
+          for(j in 1:nrow(sol)) {
+            ob <- cbind(rep(sol[j,1], nrow(sol)), sol[,2], (rep(sol[j,3], nrow(sol)) + sol[,3]) / 2)
+            ob <- ob[!ob[,1] == ob[,2],]
+            if(nrow(ob) != 0) {nz_sols[[j]] <- ob[which.max(ob[,3]), ,drop = FALSE]}
+          }
 
-            # if the assemblage and consensus ages overlap, take the overlap, otherwise take the revised age
-            if(sol2[2,1] >= sol2[1,2]) {
-              sol2 <- c(min(sol2[,1]), max(sol2[,2]))
-            # otherwise take the consensus age
-            } else {sol2 <- res}
+          # if there is still a solution
+          nz_sols <- do.call(rbind, nz_sols)
+          if(!is.null(nz_sols)) {
+            res <- as.vector(nz_sols[which.max(nz_sols[,3]),1:2])
 
-          # otherwise pointwise overlaps have been disallowed so ignore
+            # if the solution is no better than the original age
+            if(res[1] >= ores[1] & res[2] <= ores[2]) {
+              resolution <- "Retained"
+              tprop <- 1
+              # otherwise check for overlaps, taking the overlap if present
+            } else {
+              sol2 <- rbind(ores, res)
+              sol2 <- sol2[order(sol2[, 1], decreasing = TRUE),]
+              if (sol2[2, 1] > sol2[1, 2]) {
+                sol2 <- c(min(sol2[, 1]), max(sol2[, 2]))
+              } else {
+                sol2 <- res
+              }
+              tprop <- max(nz_sols$N)
+            }
+
+            # otherwise the age goes unresolved (no non-zero solutions)
           } else {
             revise <- FALSE
             revision <- "Unresolved"
           }
         }
 
-      # otherwise the proportion is not high enough so ignore
+        # otherwise the age goes unresolved (no solutions above the threshold)
       } else {
         revise <- FALSE
         revision <- "Unresolved"
       }
 
-    # otherwise there are no taxa to inform revision, so ignore
+      # otherwise the age goes unchecked (no taxa in the database to check with)
     } else {
       revise <- FALSE
-      revision <- "Unrevised"
+      revision <- "Unchecked"
     }
 
-    # if a solution has been found, revise
+    # if a solution has been found, revise accordingly
     if(revise) {
 
-      # update assemblage age and revision status
+      # update assemblage and occurrence ages and revision status
       z[zpos, c("FAD", "LAD")] <- sol2
       z[zpos, "revision"] <- revision
       z[zpos, "prop"] <- tprop
@@ -232,16 +265,16 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
       if(tprop != 1) {
 
         # occurrences exceeding FAD or LAD
-        foo2 <- foo[which((foo$max_ma > res[1] & foo$min_ma >= res[1])),taxon]
-        foo3 <- foo[which((foo$max_ma <= res[2] & foo$min_ma < res[2])),taxon]
+        foo2 <- foo[which((foo$max_ma > sol2[1] & foo$min_ma >= sol2[1])),taxon]
+        foo3 <- foo[which((foo$max_ma <= sol2[2] & foo$min_ma < sol2[2])),taxon]
         rnum1 <- occs$rnum[which(occs[,taxon] %in% foo2)]
         rnum2 <- occs$rnum[which(occs[,taxon] %in% foo3)]
 
         # taxon-wise flagging
         tax_flag[rnum1] <- "00R"
         tax_flag[rnum2] <- "R00"
-        FAD_diff[rnum1] <- FAD1[rnum1] - FAD[rnum1]
-        LAD_diff[rnum2] <- LAD[rnum2] - LAD1[rnum2]
+        FAD_diff[rnum1] <- abs(FAD[rnum1] - FAD1[rnum1])
+        LAD_diff[rnum2] <- abs(LAD[rnum2] - LAD1[rnum2])
 
         # collection-wise flagging
         if(length(foo2) != 0 & length(foo3) != 0) {
@@ -265,10 +298,11 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
         z[zpos, "status"] <- "R1R"
       }
 
-    # otherwise assign unrevised
+    # otherwise assign unrevised/unchecked
     } else {
-      z[zpos, "prop"] <- tprop
+      z[zpos, c("FAD", "LAD")] <- sol2
       z[zpos, "revision"] <- revision
+      z[zpos, "prop"] <- tprop
     }
 
     # notify R
