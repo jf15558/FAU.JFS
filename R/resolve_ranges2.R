@@ -81,14 +81,14 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
   if(!all(c(taxon, srt, end) %in% colnames(y))) {
     stop("Arguments taxon, srt and end must all be the same column names in x and y")
   }
-  if(is.null(x[,err])) {
+  if(is.null(err)) {
     err <- "age_flag"
     x$age_flag <- rep("0R0", times = nrow(x))
   } else {
     if(!err %in% colnames(x)) {
       stop("err must be a column name in x")
     }
-    if(!all(unique(err) %in% c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0"))) {
+    if(!all(unique(x[,err]) %in% c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0"))) {
       stop("err contains a non-standard error code (see documentation")
     }
   }
