@@ -81,7 +81,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
   if(!all(c(taxon, srt, end) %in% colnames(y))) {
     stop("Arguments taxon, srt and end must all be the same column names in x and y")
   }
-  if(is.null(err)) {
+  if(is.null(x[,err])) {
     err <- "age_flag"
     x$age_flag <- rep("0R0", times = nrow(x))
   } else {
@@ -155,7 +155,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
     zpos <- match(to_do[i], z$assemblage)
 
     # set defaults (default age solution is current assemblage age)
-    sol_out <- ores <- as.vector(z[i, c("FAD", "LAD")])
+    sol_out <- ores <- unlist(z[i, c("FAD", "LAD")])
     tprop <- NA
     revise <- TRUE
     resolution <- "Revised"
