@@ -92,12 +92,6 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
       stop("err contains a non-standard error code (see documentation")
     }
   }
-  if(any(is.na(x[,c(taxon, srt, end, err)]))) {
-    stop("One or more values in the specified columns in x are NA")
-  }
-  if(any(is.na(y[,c(taxon, srt, end, err)]))) {
-    stop("One or more values in the specified columns in y are NA")
-  }
   if(!all(class(x[,srt]) == "numeric", class(x[,end]) == "numeric",
           class(y[,srt]) == "numeric", class(y[,end]) == "numeric")) {
     stop("srt and end columns in x and y must all be numeric")
