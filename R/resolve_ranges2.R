@@ -177,11 +177,11 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
 
           # get the most inclusive solution
           res <- rev(sol[N == max(N), range(lb)])
-           if the solution is no better than the original age
+          # if the solution is no better than the original age
           if(res[1] >= ores[1] & res[2] <= ores[2]) {
             resolution <- "Retained"
             tprop <- 1
-            # otherwise check for overlaps, taking the overlap if present
+          # otherwise check for overlaps, taking the overlap if present
           } else {
             sol2 <- rbind(ores, res)
             sol2 <- sol2[order(sol2[, 1], decreasing = TRUE),]
