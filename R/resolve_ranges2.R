@@ -155,7 +155,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
     zpos <- match(to_do[i], z$assemblage)
 
     # set defaults (default age solution is current assemblage age)
-    sol2 <- ores <- as.vector(z[i, c("FAD", "LAD")])
+    sol_out <- ores <- as.vector(z[i, c("FAD", "LAD")])
     tprop <- NA
     revise <- TRUE
     resolution <- "Revised"
@@ -185,9 +185,9 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
             sol2 <- rbind(ores, res)
             sol2 <- sol2[order(sol2[, 1], decreasing = TRUE),]
             if (sol2[2, 1] >= sol2[1, 2]) {
-              sol2 <- c(min(sol2[, 1]), max(sol2[, 2]))
+              sol_out <- c(min(sol2[, 1]), max(sol2[, 2]))
             } else {
-              sol2 <- res
+              sol_out <- res
             }
             tprop <- max(sol$N)
           }
@@ -219,9 +219,9 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
               sol2 <- rbind(ores, res)
               sol2 <- sol2[order(sol2[, 1], decreasing = TRUE),]
               if (sol2[2, 1] > sol2[1, 2]) {
-                sol2 <- c(min(sol2[, 1]), max(sol2[, 2]))
+                sol_out <- c(min(sol2[, 1]), max(sol2[, 2]))
               } else {
-                sol2 <- res
+                sol_out <- res
               }
               tprop <- max(nz_sols$N)
             }
@@ -249,18 +249,18 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
     if(revise) {
 
       # update assemblage and occurrence ages and revision status
-      z[zpos, c("FAD", "LAD")] <- sol2
+      z[zpos, c("FAD", "LAD")] <- sol_out
       z[zpos, "revision"] <- revision
       z[zpos, "prop"] <- tprop
-      FAD[occs$rnum] <- sol2[1]
-      LAD[occs$rnum] <- sol2[2]
+      FAD[occs$rnum] <- sol_out[1]
+      LAD[occs$rnum] <- sol_out[2]
 
       # flag occurrences if the consensus is not 100%
       if(tprop != 1) {
 
         # occurrences exceeding FAD or LAD
-        foo2 <- foo[which((foo$max_ma > sol2[1] & foo$min_ma >= sol2[1])),taxon]
-        foo3 <- foo[which((foo$max_ma <= sol2[2] & foo$min_ma < sol2[2])),taxon]
+        foo2 <- foo[which((foo$max_ma > sol_out[1] & foo$min_ma >= sol_out[1])),taxon]
+        foo3 <- foo[which((foo$max_ma <= sol_out[2] & foo$min_ma < sol_out[2])),taxon]
         rnum1 <- occs$rnum[which(occs[,taxon] %in% foo2)]
         rnum2 <- occs$rnum[which(occs[,taxon] %in% foo3)]
 
@@ -294,7 +294,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
 
     # otherwise assign unrevised/unchecked
     } else {
-      z[zpos, c("FAD", "LAD")] <- sol2
+      z[zpos, c("FAD", "LAD")] <- sol_out
       z[zpos, "revision"] <- revision
       z[zpos, "prop"] <- tprop
     }
