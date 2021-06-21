@@ -146,7 +146,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
   for(i in 1:length(to_do)) {
 
     # get assemblage occs
-    occs <- as.data.frame(x1[.(z$assemblage[i]), ])
+    occs <- as.data.frame(x1[.(to_do[i]), ])
     # trim to unique, named taxa and get (if any) matches in the comparative database
     occs2 <- unique(occs[, c(taxon, srt, end)])
     occs2 <- occs2[stats::complete.cases(occs2), ]
@@ -177,12 +177,12 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
 
           # get the most inclusive solution
           res <- rev(sol[N == max(N), range(lb)])
-          # if the solution is no better than the original age
-          #if(res[1] >= ores[1] & res[2] <= ores[2]) {
-          #  resolution <- "Retained"
-          #  tprop <- 1
-          #  # otherwise check for overlaps, taking the overlap if present
-          #} else {
+           if the solution is no better than the original age
+          if(res[1] >= ores[1] & res[2] <= ores[2]) {
+            resolution <- "Retained"
+            tprop <- 1
+            # otherwise check for overlaps, taking the overlap if present
+          } else {
             sol2 <- rbind(ores, res)
             sol2 <- sol2[order(sol2[, 1], decreasing = TRUE),]
             if (sol2[2, 1] >= sol2[1, 2]) {
@@ -191,7 +191,7 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
               sol_out <- res
             }
             tprop <- max(sol$N)
-          #}
+          }
 
         # if zero-length spans are not allowed
         } else {
@@ -212,11 +212,11 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
             res <- as.vector(nz_sols[which.max(nz_sols[,3]),1:2])
 
             # if the solution is no better than the original age
-            #if(res[1] >= ores[1] & res[2] <= ores[2]) {
-            #  resolution <- "Retained"
-            #  tprop <- 1
-            #  # otherwise check for overlaps, taking the overlap if present
-            #} else {
+            if(res[1] >= ores[1] & res[2] <= ores[2]) {
+              resolution <- "Retained"
+              tprop <- 1
+              # otherwise check for overlaps, taking the overlap if present
+            } else {
               sol2 <- rbind(ores, res)
               sol2 <- sol2[order(sol2[, 1], decreasing = TRUE),]
               if (sol2[2, 1] > sol2[1, 2]) {
@@ -225,9 +225,9 @@ resolve_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", 
                 sol_out <- res
               }
               tprop <- max(nz_sols$N)
-            #}
+            }
 
-            # otherwise the age goes unresolved (no non-zero solutions)
+          # otherwise the age goes unresolved (no non-zero solutions)
           } else {
             revise <- FALSE
             revision <- "Unresolved"
