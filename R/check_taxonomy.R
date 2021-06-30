@@ -251,7 +251,7 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
 
   # check rank discretion (only reporting if requested)
   rank_check <- check_ranks(x, ranks = rev(ranks))
-  crossed_all <- rev(ob$crossed_all)
+  crossed_all <- rev(rank_check$crossed_all)
   if("discrete_rank" %in% routine) {
    out[[2]] <- rank_check
    message(paste0(length(unique(unlist(crossed_all)))), " cross-rank names identified")
