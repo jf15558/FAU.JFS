@@ -117,8 +117,6 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
     stop("Not all elements of argument ranks are column names in x")
   }
   # check that ranks are in hierarchical order
-  l1 <- length(unique(x[,ranks[length(ranks)]]))
-  l2 <- length(unique(x[,ranks[(length(ranks) - 1)]]))
   if(length(unique(x[,ranks[length(ranks)]])) < length(unique(x[,ranks[(length(ranks) - 1)]]))) {
     warning("Higher taxonomy is more diverse than lower taxonomy. Are the columns in x
             or the column names specified in 'ranks' supplied in descending hierarchical order?")
@@ -136,17 +134,17 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
     stop("Routine should be a character vector containing one or more of the following:
          spell_check, discrete_rank, report_tax, resolve_tax")
   }
-  if(!any(routine %in% c("spell_check", "discrete_rank", "report_tax", "resolve_tax"))) {
+  if(!any(routine %in% c("spell_check", "discrete_rank", "duplicate_tax"))) {
     stop("All elements of argument routine are invalid.
-         Valid elements are spell_check, discrete_rank, report_tax, resolve_tax")
+         Valid elements are spell_check", "discrete_rank", "duplicate_tax")
   }
-  if(!all(routine %in% c("spell_check", "discrete_rank", "report_tax", "resolve_tax"))) {
+  if(!all(routine %in% c("spell_check", "discrete_rank", "duplicate_tax"))) {
     warning("Some elements of argument routine are invalid and will be ignored.
-            Valid elements are spell_check, discrete_rank, report_tax, resolve_tax")
+            Valid elements are spell_check", "discrete_rank", "duplicate_tax")
   }
   # ensure routine vector is clean and correctly ordered
   routine <- unique(routine)
-  routine <- as.vector(na.omit(routine[match(c("spell_check", "discrete_rank", "report_tax", "resolve_tax"), routine)]))
+  routine <- as.vector(na.omit(routine[match(c("spell_check", "discrete_rank", "duplicate_tax"), routine)]))
 
   # check additional flags
   if("spell_check" %in% routine) {
@@ -156,7 +154,7 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
       pref <- as.list(1:ncol(x))
       pref_list <- lapply(pref, function(x) {x <- NULL})
     } else {
-      if(is.vector(pref)) {
+      if(is.atomic(pref)) {
         pref_list <- lapply(1:ncol(x), function(x) {x <- pref})
       }
       if(is.list(pref)) {pref_list <- pref}
@@ -175,7 +173,7 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
       suff <- as.list(1:ncol(x))
       suff_list <- lapply(suff, function(x) {x <- NULL})
     } else {
-      if(is.vector(pref)) {
+      if(is.atomic(suff)) {
         suff_list <- lapply(1:ncol(x), function(x) {x <- suff})
       }
       if(is.list(suff)) {suff_list <- suff}
@@ -194,7 +192,7 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
       exc <- as.list(1:ncol(x))
       exc_list <- lapply(exc, function(x) {x <- NULL})
     } else {
-      if(is.vector(pref)) {
+      if(is.atomic(exc)) {
         exc_list <- lapply(1:ncol(x), function(x) {x <- exc})
       }
       if(is.list(exc)) {exc_list <- exc}
