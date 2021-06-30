@@ -25,6 +25,11 @@
 #' which are not rank relevant or if columns are not in
 #' hierarchical order. If not supplied, the column order in x
 #' is used directly and is assumed to be in rank order
+#' @param jump The maximum number of levels between the point of
+#' divergence and the point of reunion (if present) for a given
+#' path, below which the divergence will be taken as conflicting
+#' @param plot A logical speciying if the divergent paths should
+#' be plotted
 #' @param verbose A logical of length one which determines if
 #' the function should report the detection and resolution of
 #' elements with multiple higher classifications (if any)
@@ -34,7 +39,7 @@
 #' @import igraph
 #' @export
 
-resolve_duplicates <- function(x, ranks = NULL, verbose = TRUE) {
+resolve_duplicates <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose = TRUE) {
 
   # check arguments
   if(!exists("x")) {
@@ -88,11 +93,10 @@ resolve_duplicates <- function(x, ranks = NULL, verbose = TRUE) {
           x[which(x[,ranks[i]] == whichd[j]), ranks[1:max(higher_r)]] <-
             rep(highf, each = length(which(x[,ranks[i]] == whichd[j])))
 
-          # otherwise the duplicates are cases where the higher ranks are NA
           # if the focal taxa has true duplicate classifications
         } else {
           # resolve duplicate paths
-          to_do <- assess_duplicates(st, node = whichd[j])
+          to_do <- assess_duplicates(st, node = whichd[j], jump = jump, plot = plot)
 
           # either update taxonomy
           if(length(grep("proposed", to_do[[1]]$dec)) == 1) {

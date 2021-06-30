@@ -20,6 +20,9 @@
 #' @param mode The rule to be used in selecting between multiple
 #' higher classifications. It is possible for the most complete
 #' pathway to also be the most frequent
+#' @param jump The maximum number of levels between the point of
+#' divergence and the point of reunion (if present) for a given
+#' path, below which the divergence will be taken as conflicting
 #' @param plot A logical speciying if the divergent paths should
 #' be plotted
 #' @return A list with as many items as elements with multiple
@@ -28,7 +31,8 @@
 #' @import igraph
 #' @import graphics
 
-assess_duplicates <- function(x, node, mode = c("frequency", "completeness"), plot = FALSE) {
+assess_duplicates <- function(x, node, mode = c("frequency", "completeness"), jump = 3,
+                              plot = FALSE) {
 
   if(!exists("x") | !(class(x) == "tgraph")) {
     stop("Please supply a tgraph object")
@@ -147,7 +151,7 @@ assess_duplicates <- function(x, node, mode = c("frequency", "completeness"), pl
           # get the rank of the focal node
           r_min <- max(V(test)$rank)
           # if the divergent nodes differ by max 1 rank and the next shared node is max 3 levels above the base
-          if(diff(vrank) < 2 & (r_min - int) < 4) {
+          if(diff(vrank) < 2 & (r_min - int) < (jump + 1)) {
 
             # get the pathway frequencies and lengths
             f1 <- igraph::E(x$taxa)[paths[1] %--% paths[2]]$freq

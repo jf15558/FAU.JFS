@@ -4,7 +4,13 @@
 \alias{assess_duplicates}
 \title{assess_duplicates}
 \usage{
-assess_duplicates(x, node, mode = c("frequency", "completeness"), plot = FALSE)
+assess_duplicates(
+  x,
+  node,
+  mode = c("frequency", "completeness"),
+  jump = 3,
+  plot = FALSE
+)
 }
 \arguments{
 \item{x}{A tgraph object}
@@ -16,6 +22,10 @@ elements as focal}
 \item{mode}{The rule to be used in selecting between multiple
 higher classifications. It is possible for the most complete
 pathway to also be the most frequent}
+
+\item{jump}{The maximum number of levels between the point of
+divergence and the point of reunion (if present) for a given
+path, below which the divergence will be taken as conflicting}
 
 \item{plot}{A logical speciying if the divergent paths should
 be plotted}

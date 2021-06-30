@@ -2,6 +2,7 @@
 
 export(age_ranges)
 export(check_ranks)
+export(check_taxonomy)
 export(clean_name)
 export(densify)
 export(find_duplicates)

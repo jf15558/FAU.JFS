@@ -4,7 +4,7 @@
 \alias{resolve_duplicates}
 \title{roxygen documentation}
 \usage{
-resolve_duplicates(x, ranks = NULL, verbose = TRUE)
+resolve_duplicates(x, ranks = NULL, jump = 4, plot = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{x}{A dataframe containing hierarchically structured
@@ -16,6 +16,13 @@ given in rank order. This is useful if x contains columns
 which are not rank relevant or if columns are not in
 hierarchical order. If not supplied, the column order in x
 is used directly and is assumed to be in rank order}
+
+\item{jump}{The maximum number of levels between the point of
+divergence and the point of reunion (if present) for a given
+path, below which the divergence will be taken as conflicting}
+
+\item{plot}{A logical speciying if the divergent paths should
+be plotted}
 
 \item{verbose}{A logical of length one which determines if
 the function should report the detection and resolution of
