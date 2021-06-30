@@ -162,7 +162,7 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
         stop("Prefixes should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
              vectors to be used at each specific level in x (length must equal number of columns in x/number of ranks")
       }
-      if(!all(unlist(lapply(pref_list, class))) == "character") {
+      if (!all(unlist(lapply(pref_list, class)) %in% c("NULL", "character"))) {
         stop("Not all elements of pref are of class character")
       }
       pref_list <- lapply(pref_list, function(x) {as.vector(na.omit(x))})
@@ -181,8 +181,8 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
         stop("Suffixes should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
              vectors to be used at each specific level in x (length must equal number of columns in x/number of ranks")
       }
-      if(!all(unlist(lapply(suff_list, class))) == "character") {
-        stop("Not all elements of pref are of class character")
+      if (!all(unlist(lapply(suff_list, class)) %in% c("NULL", "character"))) {
+        stop("Not all elements of suff are of class character")
       }
       suff_list <- lapply(suff_list, function(x) {as.vector(na.omit(x))})
     }
@@ -200,8 +200,8 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
         stop("Exclusions should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
              vectors to be used at each specific level in x (length must equal number of columns in x/number of ranks")
       }
-      if(!all(unlist(lapply(exc_list, class))) == "character") {
-        stop("Not all elements of pref are of class character")
+      if (!all(unlist(lapply(exc_list, class)) %in% c("NULL", "character"))) {
+        stop("Not all elements of exc are of class character")
       }
       exc_list <- lapply(exc_list, function(x) {as.vector(na.omit(x))})
     }
