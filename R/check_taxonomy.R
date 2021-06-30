@@ -188,22 +188,22 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
     }
 
     # check any supplied exclusions
-    if(is.null(exc)) {
-      exc <- as.list(1:ncol(x))
-      exc_list <- lapply(exc, function(x) {x <- NULL})
+    if(is.null(exclude)) {
+      exclude <- as.list(1:ncol(x))
+      exclude_list <- lapply(exclude, function(x) {x <- NULL})
     } else {
-      if(is.atomic(exc)) {
-        exc_list <- lapply(1:ncol(x), function(x) {x <- exc})
+      if(is.atomic(exclude)) {
+        exclude_list <- lapply(1:ncol(x), function(x) {x <- exclude})
       }
-      if(is.list(exc)) {exc_list <- exc}
-      if(length(exc_list) != length(ranks)) {
+      if(is.list(exclude)) {exclude_list <- exclude}
+      if(length(exclude_list) != length(ranks)) {
         stop("Exclusions should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
              vectors to be used at each specific level in x (length must equal number of columns in x/number of ranks")
       }
-      if (!all(unlist(lapply(exc_list, class)) %in% c("NULL", "character"))) {
+      if (!all(unlist(lapply(exclude_list, class)) %in% c("NULL", "character"))) {
         stop("Not all elements of exc are of class character")
       }
-      exc_list <- lapply(exc_list, function(x) {as.vector(na.omit(x))})
+      exclude_list <- lapply(exclude_list, function(x) {as.vector(na.omit(x))})
     }
 
     if(spell_clean) {
@@ -233,7 +233,7 @@ check_taxonomy <- function(x, ranks = NULL, routine = c("spell_check", "discrete
     for(i in 1:(length(ranks) - 1)) {
       spell_list[[i]] <- spell_check(x = x, terms = ranks[i + 1], groups = ranks[i],
                                      jw = jw, str = str, str2 = str2, method2 = method2,
-                                     q = q, pref = pref_list[[i + 1]], suff = suff_list[[i + 1]], exclude = exc_list[[i + 1]])
+                                     q = q, pref = pref_list[[i + 1]], suff = suff_list[[i + 1]], exclude = exclude_list[[i + 1]])
       spell_list[[i]] <- cbind.data.frame(level = rep(ranks[i + 1], nrow(spell_list[[i]])), spell_list[[i]])
       message(paste0(nrow(spell_list[[i]]), " potential synonyms flagged at the ", ranks[i + 1], " level"))
     }
