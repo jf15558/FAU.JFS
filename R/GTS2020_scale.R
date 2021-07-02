@@ -1,4 +1,4 @@
-#' apply_GTS2020
+#' GTS2020_scale
 #'
 #' Convenience function to apply GTS2020 chronostratigraphy
 #' to fossil datasets. The function relies on a lookup table
@@ -36,7 +36,7 @@
 #' names GTS_FAD and GTS_LAD respectively
 #' @export
 
-apply_GTS2020 <- function(x, srt = "early_interval", end = "late_interval", max_ma = NULL, min_ma = NULL) {
+GTS2020_scale <- function(x, srt = "early_interval", end = "late_interval", max_ma = NULL, min_ma = NULL) {
 
   if(!exists("x")) {
     stop("Please supply x as a dataframe containing, minimally, the first and last interval ages of PBDB data")
@@ -92,13 +92,12 @@ apply_GTS2020 <- function(x, srt = "early_interval", end = "late_interval", max_
   tscale <- tscale[, c("Interval", "FAD", "LAD")]
   xfad <- x[,srt]
   xlad <- x[,end]
+  xlad[is.na(xlad)] <- xfad[is.na(xlad)]
   xerl <- x[,max_ma]
   xlte <- x[,min_ma]
   cinterval <- "Interval"
   cfad <- "FAD"
   clad <- "LAD"
-  x[is.na(x[,xlad]), xlad] <- x[is.na(x[,xlad]), xfad]
-
   # check for unmatchable names
   test <- unique(c(x[,srt], x[,end]))
   test <- test[!test %in% tscale[,cinterval]]
@@ -109,10 +108,10 @@ apply_GTS2020 <- function(x, srt = "early_interval", end = "late_interval", max_
                    will be returned for these intervals"))
   }
 
-  new_fad <- tscale[match(x[,xfad], tscale[,cinterval]), cfad]
-  new_lad <- tscale[match(x[,xlad], tscale[,cinterval]), clad]
-  new_fad[is.na(new_fad)] <- x[is.na(new_fad), xerl]
-  new_lad[is.na(new_lad)] <- x[is.na(new_lad), xlte]
+  new_fad <- tscale[match(xfad, tscale[,cinterval]), cfad]
+  new_lad <- tscale[match(xlad, tscale[,cinterval]), clad]
+  new_fad[is.na(new_fad)] <- xerl[is.na(new_fad)]
+  new_lad[is.na(new_lad)] <- xlte[is.na(new_lad)]
   x$GTS_FAD <- new_fad
   x$GTS_LAD <- new_lad
   return(x)
