@@ -1,4 +1,4 @@
-#' GTS2020_scale
+#' apply_GTS2020
 #'
 #' Convenience function to apply GTS2020 chronostratigraphy
 #' to fossil datasets. The function relies on a lookup table
@@ -36,7 +36,7 @@
 #' names GTS_FAD and GTS_LAD respectively
 #' @export
 
-GTS2020_scale <- function(x, srt = "early_interval", end = "late_interval", max_ma = NULL, min_ma = NULL) {
+apply_GTS2020 <- function(x, srt = "early_interval", end = "late_interval", max_ma = NULL, min_ma = NULL) {
 
   if(!exists("x")) {
     stop("Please supply x as a dataframe containing, minimally, the first and last interval ages of PBDB data")

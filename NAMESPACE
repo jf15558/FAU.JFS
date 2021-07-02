@@ -2,6 +2,7 @@
 
 export(add_kingdoms)
 export(age_ranges)
+export(apply_GTS2020)
 export(check_ranks)
 export(check_taxonomy)
 export(clean_name)
