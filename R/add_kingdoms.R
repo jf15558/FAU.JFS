@@ -1,5 +1,5 @@
 #' add_kingdoms
-#' 
+#'
 #' Convenience function to add in a kingdom column to a PBDB
 #' dataset. This relies on the dataset having a column of
 #' phylum-level assignments for occurrences. The kingdom
@@ -18,14 +18,14 @@
 #' @export
 
 add_kingdoms <- function(x, phylum = "phylum", insert.left = TRUE) {
-  
+
   if(!exists("x")) {
     stop("Please supply x as a dataframe containing, minimally, the phylum-level assignments of PBDB data")
   }
   if(!is.data.frame(x)) {
     stop("Please supply x as a dataframe containing, minimally, the phylum-level assignments of PBDB data")
   }
-  if(!is.character(phylum) | length(phylum != 1)) {
+  if(!is.character(phylum) | length(phylum) != 1) {
     stop("Phylum should a character vector of length 1 and refer to the phylum column in x")
   }
   if(!phylum %in% colnames(x)) {
@@ -40,7 +40,7 @@ add_kingdoms <- function(x, phylum = "phylum", insert.left = TRUE) {
   if(!is.logical(insert.left)) {
     stop("insert.left should be a logical of length 1")
   }
-  
+
   pbdb_kingdoms <- get("pbdb_kingdoms")
   animals <- pbdb_kingdoms$animals
   plants <- pbdb_kingdoms$plants
