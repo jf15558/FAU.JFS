@@ -34,6 +34,7 @@
 #' @return The dataframe, x, with two additional columns containing
 #' the revised first and last numeric ages of the data, with column
 #' names GTS_FAD and GTS_LAD respectively
+#' @export
 
 GTS2020_scale <- function(x, srt = "early_interval", end = "late_interval", max_ma = NULL, min_ma = NULL) {
 
