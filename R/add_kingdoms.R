@@ -52,7 +52,11 @@ add_kingdoms <- function(x, phylum = "phylum", insert.left = TRUE) {
   x$kingdom[x[,phylum] == "Pezizomycotina"] <- "Fungi"
   x$kingdom[x[,phylum] == "Cyanobacteria"] <- "Bacteria"
   if(insert.left) {
-    x <- cbind.data.frame(x[,1:(which(colnames(x) == phylum) - 1)], x$kingdom, x[,(which(colnames(x) == phylum)):(ncol(x) - 1)])
+    if(which(colnames(x) == "phylum") == 1) {
+      x <- cbind.data.frame(kingdom = x$kingdom, x[,-which(colnames(x) == "kingdom"), drop = FALSE])
+    } else {
+      x <- cbind.data.frame(x[,1:(which(colnames(x) == phylum) - 1)], x$kingdom, x[,(which(colnames(x) == phylum)):(ncol(x) - 1)])
+    }
   }
   return(x)
 }
