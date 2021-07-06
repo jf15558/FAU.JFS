@@ -7,7 +7,15 @@
 check_taxonomy(
   x,
   ranks = NULL,
-  routine = c("spell_check", "discrete_rank", "duplicate_tax"),
+  species = FALSE,
+  routine = c("format_check", "spell_check", "discrete_rank", "duplicate_tax"),
+  format_clean = FALSE,
+  spell_clean = FALSE,
+  thresh = NULL,
+  tax_clean = TRUE,
+  append = TRUE,
+  terms = NULL,
+  collapse = NULL,
   jw = 0.1,
   str = 1,
   str2 = NULL,
@@ -17,11 +25,7 @@ check_taxonomy(
   suff = NULL,
   exclude = NULL,
   jump = 3,
-  plot = FALSE,
-  spell_clean = FALSE,
-  thresh = NULL,
-  tax_clean = TRUE,
-  append = TRUE
+  plot = FALSE
 )
 }
 \arguments{
@@ -34,11 +38,57 @@ columns must be in order of decreasing taxonomic rank}
 in x. These must be provided in order of decreasing taxonomic
 rank}
 
+\item{species}{A logical indicating if x contains a species
+column. As the data must be supplied in hierarchical order,
+this column will naturally be the last column in x and
+species-specific spell checks will be performed on this column.}
+
 \item{routine}{A character vector determining the flagging
-and cleaning routines to employ. Valid values are spell_check
+and cleaning routines to employ. Valid values are format_check (check for
+non letter characters and the number of words in names), spell_check
 (flag potential spelling errors), discrete_rank (check that
 taxonomic names are unique to their rank), duplicate_tax (flag
 conflicting higher classifications of a given taxon)}
+
+\item{format_clean}{If TRUE, the function will return cleaned versions of the columns in x
+using the routines in @seealso clean_name. These routines can be
+altered using the 'terms' and 'collapse' arguments.}
+
+\item{spell_clean}{If TRUE, the function will return a cleaned version
+of the supplied taxonomic dataframe, using the supplied threshold
+for the similarity method given by method2, to automatically update
+any names in pairs of flagged synonyms to the more frequent spelling.
+This is not recommended, however, so the argument is FALSE by default
+and the threshold left as NULL}
+
+\item{thresh}{The threshold for the similarity method given by method2,
+below which flagged pairs of names will be considered synonyms and
+resolved automatically. See @seealso spell_check for details on method2}
+
+\item{tax_clean}{If TRUE, the function will return a cleaned version
+of the supplied taxonomic dataframe, using @seealso resolve_duplicates
+to resolve conflicts in the way documented by the function. Both
+spell_clean and tax_clean can both be TRUE to return a dataset cleaned
+by both methods}
+
+\item{append}{If TRUE, any suffixes used during cleaning will
+be retained in the cleaned version of the data. This is preferable
+as it ensures that all taxonomic names are rank-discrete and
+uniquely classified}
+
+\item{terms}{If not NULL, a character vector of terms (which
+will be used at all ranks) or a list of rank-specific terms to be cleaned
+from taxonomic names if format_clean = TRUE. If a list, this
+should be given in descending rank order. Called by @seealso
+clean_name}
+
+\item{collapse}{If not NULL, a character vector of string (which
+will be used at all ranks) or a list of rank-specific strings which will
+be collapsed in taxonomic names if format_clean = TRUE (i.e. replaced by "",
+rather than the default " "). If one of the collapse terms is a regex special
+character, it will need to be escaped, e.g. "\-". If a list, this
+should be given in descending rank order. Called by @seealso
+clean_name}
 
 \item{jw}{a numeric greater than 0 and less than 1. This is
 the distance threshold below which potential synonyms will be
@@ -90,46 +140,29 @@ Called by @seealso resolve_duplicates}
 
 \item{plot}{A logical speciying if conflicting classifications should
 be plotted. Called by @seealso resolve_duplicates}
-
-\item{spell_clean}{If TRUE, the function will return a cleaned version
-of the supplied taxonomic dataframe, using the supplied threshold
-for the similarity method given by method2, to automatically update
-any names in pairs of flagged synonyms to the more frequent spelling.
-This is not recommended, however, so the argument is FALSE by default
-and the threshold left as NULL}
-
-\item{thresh}{The threshold for the similarity method given by method2,
-below which flagged pairs of names will be considered synonyms and
-resolved automatically. See @seealso spell_check for details on method2}
-
-\item{tax_clean}{If TRUE, the function will return a cleaned version
-of the supplied taxonomic dataframe, using @seealso resolve_duplicates
-to resolve conflicts in the way documented by the function. Both
-spell_clean and tax_clean can both be TRUE to return a dataset cleaned
-by both methods}
-
-\item{append}{If TRUE, any suffixes used during cleaning will
-be retained in the cleaned version of the data. This is preferable
-as it ensures that all taxonomic names are rank-discrete and
-uniquely classified}
 }
 \value{
 A list with elements corresponding to the outputs of the
 chosen flagging routines (three by default), plus
-a cleaned taxonomic dataframe if either spell_clean or tax_clean or both
+a cleaned taxonomic dataframe if any of format_clean, spell_clean or tax_clean
 are TRUE. See @seealso spell_clean, @seealso check_ranks and @seealso
 find_duplicates for details of the structure of the outputs
 }
 \description{
 Function to implement a multi-step cleaning routine for
-hierarchically structured taxonomic data. The first
+hierarchically structured taxonomic data. The first part
+of the routine performs a few presumptive checks on all
+columns, scanning for non letter characters and checking
+the number of words in each string (all assumed to contain
+1 word, aside from species names). If chosen, @seealso
+clean_name is called to ensure correct formatting. The second
 part of the routine calls @seealso spell_check to flag
-spelling errors within a given taxonomic group. The second
+spelling errors within a given taxonomic group. The third
 part of the routine calls @seealso check_ranks to flag
 name re-use at different levels. Some of these cases may
 arise when a name has been unfortunately, but validly
 used to refer to different groups at different taxonomic
-levels. The third part of the routine calls @seealso
+levels. The fourth part of the routine calls @seealso
 find_duplicates to flag variable higher classifications for
 a given taxon. The function flags errors by default, but can
 return a fully cleaned taxonomic scheme with conflicting
