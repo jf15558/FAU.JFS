@@ -11,11 +11,12 @@ spell_check(
   jw = 0.1,
   str = 1,
   str2 = NULL,
-  method2 = "jaccard",
+  alternative = "jaccard",
   q = 1,
   pref = NULL,
   suff = NULL,
-  exclude = NULL
+  exclude = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -47,12 +48,12 @@ pairs. By default 1, i.e. the first letters must match}
 \item{str2}{If not NULL, a positive integer specifying the
 number of matching characters at the end of synonym pairs}
 
-\item{method2}{A character string of length one corresponding
+\item{alternative}{A character string of length one corresponding
 to one of the methods used by @seealso afind. One of "osa",
 "lv", "dl", "hamming", "lcs", "qgram", "cosine",
 "running_cosine", "jaccard", or "soundex".}
 
-\item{q}{q-gram size. Only used when method2 is "qgram",
+\item{q}{q-gram size. Only used when alternative is "qgram",
 "cosine" or "Jaccard".}
 
 \item{pref}{If not NULL, a character vector of prefixes which
@@ -66,6 +67,9 @@ be considered if both terms share the same suffix}
 \item{exclude}{If not NULL, a character vector of group names
 which should be skipped - useful for groups which are known
 to contain potentially similar terms}
+
+\item{verbose}{A logical determining if function progress be reported using the
+pbapply progress bar}
 }
 \value{
 a dataframe of synonyms (cols 1 and 2), the group in

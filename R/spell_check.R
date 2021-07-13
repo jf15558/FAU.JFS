@@ -30,11 +30,11 @@
 #' pairs. By default 1, i.e. the first letters must match
 #' @param str2 If not NULL, a positive integer specifying the
 #' number of matching characters at the end of synonym pairs
-#' @param method2 A character string of length one corresponding
+#' @param alternative A character string of length one corresponding
 #' to one of the methods used by @seealso afind. One of "osa",
 #' "lv", "dl", "hamming", "lcs", "qgram", "cosine",
 #' "running_cosine", "jaccard", or "soundex".
-#' @param q q-gram size. Only used when method2 is "qgram",
+#' @param q q-gram size. Only used when alternative is "qgram",
 #' "cosine" or "Jaccard".
 #' @param pref If not NULL, a character vector of prefixes which
 #' may result in erroneously low JW distances. Synonyms will only
@@ -45,6 +45,8 @@
 #' @param exclude If not NULL, a character vector of group names
 #' which should be skipped - useful for groups which are known
 #' to contain potentially similar terms
+#' @param verbose A logical determining if function progress be reported using the
+#' pbapply progress bar
 #' @return a dataframe of synonyms (cols 1 and 2), the group in
 #' which they occur, the frequencies of each synonym in the dataset
 #' and finally the q-gram difference between the synonyms
@@ -53,8 +55,8 @@
 #' @import pbapply
 #' @export
 
-spell_check <- function(x, terms = NULL, groups = NULL, jw = 0.1, str = 1, str2 = NULL, method2 = "jaccard", q = 1,
-                        pref = NULL, suff = NULL, exclude = NULL) {
+spell_check <- function(x, terms = NULL, groups = NULL, jw = 0.1, str = 1, str2 = NULL, alternative = "jaccard", q = 1,
+                        pref = NULL, suff = NULL, exclude = NULL, verbose = TRUE) {
 
   # check arguments
   if(!exists("x")) {
@@ -115,16 +117,16 @@ spell_check <- function(x, terms = NULL, groups = NULL, jw = 0.1, str = 1, str2 
       stop("str must be a positive integer, or NULL")
     }
   }
-  if(length(method2) > 1) {
-    warning("method2 contains more than one element. Only the first will be used")
-    method2 <- method2[1]
+  if(length(alternative) > 1) {
+    warning("alternative contains more than one element. Only the first will be used")
+    alternative <- alternative[1]
   }
-  if(!method2 %in% c("osa", "lv", "dl", "hamming", "lcs", "qgram",
+  if(!alternative %in% c("osa", "lv", "dl", "hamming", "lcs", "qgram",
                      "cosine", "running_cosine", "jaccard", "soundex")) {
-    stop("method2 must be one of 'osa', 'lv', 'dl', 'hamming', 'lc', 'qgram',
+    stop("alternative must be one of 'osa', 'lv', 'dl', 'hamming', 'lc', 'qgram',
                      'cosine', 'running_cosine', 'jaccard', 'soundex'")
   }
-  if(method2 %in% c("qgram", "cosine", "jaccard")) {
+  if(alternative %in% c("qgram", "cosine", "jaccard")) {
     if(length(q) > 1) {
       warning("q contains more than one element. Only the first will be used")
       q <- q[1]
@@ -148,6 +150,10 @@ spell_check <- function(x, terms = NULL, groups = NULL, jw = 0.1, str = 1, str2 
     if(!is.character(exclude)) {
       stop("exclude must be of class character")
     }
+  }
+  if(!verbose) {
+    baseopt <- getOption("pboptions")
+    opb <- pboptions(type = "none")
   }
 
   # apply the comparison algorithm groupwise
@@ -231,7 +237,7 @@ spell_check <- function(x, terms = NULL, groups = NULL, jw = 0.1, str = 1, str2 
   err$f2 <- as.vector(table(x[,terms])[match(err$V2, names(table(x[,terms])))])
 
   # do qgram score
-  val <- apply(err, 1, function(y) {afind(y[1], y[2], method = method2, q = q)$distance})
+  val <- apply(err, 1, function(y) {afind(y[1], y[2], method = alternative, q = q)$distance})
   err2 <- cbind.data.frame(err, val)
 
   # return
@@ -243,5 +249,6 @@ spell_check <- function(x, terms = NULL, groups = NULL, jw = 0.1, str = 1, str2 
     colnames(err2) <- c("t1", "t2", "group",
                         "freq1", "freq2", "m2")
   }
+  if(!verbose) {opt <- pboptions(baseopt)}
   return(err2)
 }

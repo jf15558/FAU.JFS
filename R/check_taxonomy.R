@@ -98,7 +98,7 @@
 #' @param jw Called by @seealso spell_check
 #' @param str Called by @seealso spell_check
 #' @param str2 Called by @seealso spell_check
-#' @param method2 Called by @seealso spell_check
+#' @param alternative Called by @seealso spell_check
 #' @param q Called by @seealso spell_check
 #' @param pref_set A character vector of prefixes (which
 #' will be used at all ranks) or a list of rank-specific prefixes,
@@ -131,7 +131,7 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
                            routine = c("format_check", "spell_check", "discrete_ranks", "find_duplicates"), report = TRUE, verbose = TRUE,
                            clean_name = FALSE, clean_spell = FALSE, thresh = NULL, resolve_duplicates = TRUE, append = TRUE,
                            term_set = NULL, collapse_set = NULL,
-                           jw = 0.1, str = 1, str2 = NULL, method2 = "jaccard", q = 1, pref_set = NULL, suff_set = NULL, exclude_set = NULL,
+                           jw = 0.1, str = 1, str2 = NULL, alternative = "jaccard", q = 1, pref_set = NULL, suff_set = NULL, exclude_set = NULL,
                            jump = 3, plot = FALSE) {
 
   ######## ARG CHECKS ########
@@ -327,8 +327,8 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
     spell_list <- list()
     for(i in 1:(length(ranks) - 1)) {
       spell_list[[i]] <- spell_check(x = x, terms = ranks[i + 1], groups = ranks[i],
-                                     jw = jw, str = str, str2 = str2, method2 = method2,
-                                     q = q, pref = pref_list[[i + 1]], suff = suff_list[[i + 1]], exclude = exclude_list[[i + 1]])
+                                     jw = jw, str = str, str2 = str2, alternative = alternative,
+                                     q = q, pref = pref_list[[i + 1]], suff = suff_list[[i + 1]], exclude = exclude_list[[i + 1]], verbose = verbose)
       spell_list[[i]] <- cbind.data.frame(level = rep(ranks[i + 1], nrow(spell_list[[i]])), spell_list[[i]])
       if(verbose) {message(paste0(nrow(spell_list[[i]]), " potential synonyms flagged at the ", ranks[i + 1], " level"))}
     }

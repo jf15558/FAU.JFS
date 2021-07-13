@@ -59,12 +59,6 @@ resolve_duplicates <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose 
   if(!all(unlist(lapply(x[,levels], class)) == "character")) {
     stop("Not all rank columns in x are of class character")
   }
-  if(!verbose) {
-    baseopt <- getOption("pboptions")
-    opb <- pboptions(type = "none")
-  }
-
-  foo <- pboptions(type = "txt", style = 3,)
 
   for(i in length(ranks):2) {
 
@@ -137,6 +131,5 @@ resolve_duplicates <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose 
       }
     }
   }
-  if(!verbose) {opt <- pboptions(baseopt)}
   return(x)
 }

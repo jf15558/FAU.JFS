@@ -22,7 +22,7 @@ check_taxonomy(
   jw = 0.1,
   str = 1,
   str2 = NULL,
-  method2 = "jaccard",
+  alternative = "jaccard",
   q = 1,
   pref_set = NULL,
   suff_set = NULL,
@@ -117,7 +117,7 @@ should be given in descending rank order}
 
 \item{str2}{Called by @seealso spell_check}
 
-\item{method2}{Called by @seealso spell_check}
+\item{alternative}{Called by @seealso spell_check}
 
 \item{q}{Called by @seealso spell_check}
 
