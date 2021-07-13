@@ -4,7 +4,7 @@
 \alias{clean_name}
 \title{roxygen documentation}
 \usage{
-clean_name(x, terms = NULL, collapse = NULL)
+clean_name(x, terms = NULL, collapse = NULL, verbose = FALSE)
 }
 \arguments{
 \item{x}{a vector of names to clean. This will be coerced to
@@ -19,6 +19,9 @@ of x}
 collapsed (i.e. replaced by "", rather than the default " ").
 If one of the collapse terms is a special regex character, it
 will need to be escaped, e.g. "\\-"}
+
+\item{verbose}{A logical of length 1 determining if function
+progress should be reported to the console}
 }
 \value{
 a character vector the same length as x. Elements

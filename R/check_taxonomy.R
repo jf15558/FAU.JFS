@@ -1,29 +1,38 @@
 #' check_taxonomy
 #'
-#' Function to implement a multi-step cleaning routine for
-#' hierarchically structured taxonomic data. The first part
-#' of the routine performs a few presumptive checks on all
-#' columns, scanning for non letter characters and checking
-#' the number of words in each string (all assumed to contain
-#' 1 word, aside from species names). If chosen, @seealso
-#' clean_name is called to ensure correct formatting. The second
-#' part of the routine calls @seealso spell_check to flag
-#' spelling errors within a given taxonomic group. The third
-#' part of the routine calls @seealso check_ranks to flag
-#' name re-use at different levels. Some of these cases may
-#' arise when a name has been unfortunately, but validly
-#' used to refer to different groups at different taxonomic
-#' levels. The fourth part of the routine calls @seealso
-#' find_duplicates to flag variable higher classifications for
-#' a given taxon. The function flags errors by default, but can
-#' return a fully cleaned taxonomic scheme with conflicting
-#' classifications eliminated or split by the addition of suffixes
-#' to give unique taxonomic names. In the case of non-rank unique
-#' names, the suffixes are of the form _RNK + the column number,
-#' e.g _RNK1. For conflicting classifications, cleaning is
-#' performed using @seealso resolve_duplicates, and in the case
-#' of re-use of a name at the same rank for genuinely different
-#' taxa, suffixes are capital letters, e.g. AlloniaA, AlloniaB
+#' Wrapper functions to implement a multi-step cleaning routine
+#' for hierarchically structured taxonomic data. The first part
+#' of the routine calls @seealso format_check to perform a few
+#' presumptive checks on all columns, scanning for non-letter
+#' characters and checking the number of words in each string.
+#' If chosen, @seealso clean_name is called to ensure correct
+#' formatting. The second part of the routine calls @seealso
+#' spell_check to flag spelling discrepancies between names within
+#' a given taxonomic group. If chosen, the function can
+#' automatically impose the more frequent spelling. The third
+#' part of the routine calls @seealso discrete_ranks to flag
+#' name re-use at different taxonomic levels. Some of these cases
+#' may arise when a name has been unfortunately, (although
+#' permissibly) used to refer to groups at different taxonomic levels,
+#' or where a higher classification may have been inserted as a
+#' placeholder for a missing lower classification. If chosen, in the
+#' case of non-rank unique names, suffixes of the form _RNK + the
+#' column number, e.g _RNK1, are added to ensure that the resulting
+#' names are unique to their rank. The fourth part of the routine
+#' calls @seealso find_duplicates to flag variable higher classifications
+#' for a given taxon, including cases where a higher classification
+#' is missing for one instance of a taxon, but present for the others.
+#' If chosen, @seealso resolve_duplicates is called to ensure a
+#' consistent classification is imposed. For cases where a name has
+#' been re-used at the same rank for genuinely different taxa
+#' (not permissible, unlike name re-use at different ranks) suffixes
+#' are added as capital letters, e.g. TaxonA, TaxonB. If any of the
+#' automatic cleaning routines are employed, the function will returned
+#' a cleaned version of the dataset. If the use of suffixes is not
+#' desirable, the function behaviour can be altered so that any
+#' suffixes are dropped before returning.
+#'
+#' * Data supply arguments *
 #' @param x A dataframe with hierarchically organised
 #' taxonomic information. If x only comprises the taxonomic
 #' information, @param ranks does not need to be specified, but the
@@ -35,16 +44,29 @@
 #' column. As the data must be supplied in hierarchical order,
 #' this column will naturally be the last column in x and
 #' species-specific spell checks will be performed on this column.
+#' @param species_sep A character vector of length one specifying
+#' the genus name and specific epithet in the species column, if
+#' present
+#'
+#' * Flagging routine arguments *
 #' @param routine A character vector determining the flagging
 #' and cleaning routines to employ. Valid values are format_check (check for
 #' non letter characters and the number of words in names), spell_check
 #' (flag potential spelling errors), discrete_rank (check that
 #' taxonomic names are unique to their rank), duplicate_tax (flag
 #' conflicting higher classifications of a given taxon)
-#' @param format_clean If TRUE, the function will return cleaned versions of the columns in x
+#' @param report A logical of length one determining if the flagging outputs
+#' of each cleaning routine should be returned to the user for inspection.
+#' This is different to @param verbose, which controls whether flagging
+#' should additionally be reported to the user on the console
+#' @param verbose A logical determining if function progress and flagged
+#' errors should be reported to the console
+#'
+#' * Cleaning routine arguments *
+#' @param clean_name If TRUE, the function will return cleaned versions of the columns in x
 #' using the routines in @seealso clean_name. These routines can be
 #' altered using the 'terms' and 'collapse' arguments.
-#' @param spell_clean If TRUE, the function will return a cleaned version
+#' @param clean_spell If TRUE, the function will return a cleaned version
 #' of the supplied taxonomic dataframe, using the supplied threshold
 #' for the similarity method given by method2, to automatically update
 #' any names in pairs of flagged synonyms to the more frequent spelling.
@@ -53,7 +75,7 @@
 #' @param thresh The threshold for the similarity method given by method2,
 #' below which flagged pairs of names will be considered synonyms and
 #' resolved automatically. See @seealso spell_check for details on method2
-#' @param tax_clean If TRUE, the function will return a cleaned version
+#' @param resolve_duplicates If TRUE, the function will return a cleaned version
 #' of the supplied taxonomic dataframe, using @seealso resolve_duplicates
 #' to resolve conflicts in the way documented by the function. Both
 #' spell_clean and tax_clean can both be TRUE to return a dataset cleaned
@@ -62,72 +84,57 @@
 #' be retained in the cleaned version of the data. This is preferable
 #' as it ensures that all taxonomic names are rank-discrete and
 #' uniquely classified
-#' @param terms If not NULL, a character vector of terms (which
-#' will be used at all ranks) or a list of rank-specific terms to be cleaned
-#' from taxonomic names if format_clean = TRUE. If a list, this
-#' should be given in descending rank order. Called by @seealso
-#' clean_name
-#' @param collapse If not NULL, a character vector of string (which
-#' will be used at all ranks) or a list of rank-specific strings which will
-#' be collapsed in taxonomic names if format_clean = TRUE (i.e. replaced by "",
-#' rather than the default " "). If one of the collapse terms is a regex special
-#' character, it will need to be escaped, e.g. "\-". If a list, this
-#' should be given in descending rank order. Called by @seealso
-#' clean_name
-#' @param jw a numeric greater than 0 and less than 1. This is
-#' the distance threshold below which potential synonyms will be
-#' considered. Called by @seealso spell_check
-#' @param str A positive integer specifying the
-#' number of matching characters at the beginning of synonym
-#' pairs. By default 1, i.e. the first letters must match. Called
-#' by @seealso spell_check
-#' @param str2 If not NULL, a positive integer specifying the
-#' number of matching characters at the end of synonym pairs.
-#' Called by @seealso spell_check
-#' @param method2 A character string of length one corresponding
-#' to one of the methods used by @seealso afind. One of "osa",
-#' "lv", "dl", "hamming", "lcs", "qgram", "cosine",
-#' "running_cosine", "jaccard", or "soundex". Called by @seealso
-#' spell_check
-#' @param q q-gram size. Only used when method2 is "qgram",
-#' "cosine" or "Jaccard". Called by @seealso spell_check
-#' @param pref If not NULL, a character vector of prefixes (which
+#'
+#' * Routine specific arguments *
+#' @param term_set A character vector of terms (to be
+#' used at all ranks) or a list of rank-specific terms
+#' which will be supplied, element-wise as the @param collapse argument
+#' called by @seealso clean_name. If a list, this
+#' @param collapse_set A character vector of character strings (to be
+#' used at all ranks) or a list of rank-specific strings
+#' which will be supplied, element-wise as the @param collapse argument
+#' called by @seealso clean_name. If a list, this
+#' should be given in descending rank order
+#' @param jw Called by @seealso spell_check
+#' @param str Called by @seealso spell_check
+#' @param str2 Called by @seealso spell_check
+#' @param method2 Called by @seealso spell_check
+#' @param q Called by @seealso spell_check
+#' @param pref_set A character vector of prefixes (which
 #' will be used at all ranks) or a list of rank-specific prefixes,
-#' which may result in erroneously low JW distances. Synonyms will only
-#' be considered if both terms share the same prefix. If a list, this
-#' should be given in descending rank order. Called by @seealso
-#' spell_check
-#' @param suff If not NULL, a character vector of prefixes (which
-#' will be used at all ranks) or a list of rank-specific prefixes,
-#' which may result in erroneously low JW distances. Synonyms will only
-#' be considered if both terms share the same suffix. If a list, this
-#' should be given in descending rank order. Called by @seealso
-#' spell_check
-#' @param exclude If not NULL, a character vector of group names (which
-#' will be used at all ranks) or a list of rank-specific group names,
-#' which should be skipped - useful for groups which are known
-#' to contain potentially similar terms. If a list, this
-#' should be given in descending rank order. Called by @seealso
-#' spell_check
-#' @param jump The maximum number of ranks between the rank of
-#' classification conflict and the next common classification (if present),
-#' below which the divergence will be taken as conflicting.
-#' Called by @seealso resolve_duplicates
-#' @param plot A logical speciying if conflicting classifications should
-#' be plotted. Called by @seealso resolve_duplicates
-#' @return A list with elements corresponding to the outputs of the
-#' chosen flagging routines (three by default), plus
-#' a cleaned taxonomic dataframe if any of format_clean, spell_clean or tax_clean
-#' are TRUE. See @seealso spell_clean, @seealso check_ranks and @seealso
-#' find_duplicates for details of the structure of the outputs
+#' which will be supplied, element-wise as the @param pref argument
+#' called by @seealso spell_check. If a list, this
+#' should be given in descending rank order.
+#' @param suff_set A character vector of suffixes (which
+#' will be used at all ranks) or a list of rank-specific suffixes,
+#' which will be supplied, element-wise as the @param suff argument
+#' called by @seealso spell_check. If a list, this
+#' should be given in descending rank order.
+#' @param exclude_set A character vector of terms to exclude (which
+#' will be used at all ranks) or a list of rank-specific exclusion terms,
+#' which will be supplied, element-wise as the @param exclude argument
+#' called by @seealso spell_check. If a list, this
+#' should be given in descending rank order.
+#' @param jump Called by @seealso resolve_duplicates
+#' @param plot Called by @seealso resolve_duplicates
+#'
+#' @return A list with elements corresponding to the outputs of the chosen
+#' flagging routines (four by default: $formatting, $synonyms, $ranks, $duplicates),
+#' plus a cleaned verison of the data ($data) if any of clean_name, clean_spell
+#' or resolve_duplicates are TRUE. See @seealso format_check, @seealso spell_clean,
+#' @seealso discrete_ranks and @seealso find_duplicates for details of the structure
+#' of the flagging outputs
 #' @importFrom stats na.omit
 #' @export
 
-check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format_check", "spell_check", "discrete_rank", "duplicate_tax"),
-                           format_clean = FALSE, spell_clean = FALSE, thresh = NULL, tax_clean = TRUE, append = TRUE,
-                           terms = NULL, collapse = NULL,
-                           jw = 0.1, str = 1, str2 = NULL, method2 = "jaccard", q = 1, pref = NULL, suff = NULL, exclude = NULL,
+check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "genus"), species = FALSE, species_sep = NULL,
+                           routine = c("format_check", "spell_check", "discrete_ranks", "find_duplicates"), report = TRUE, verbose = TRUE,
+                           clean_name = FALSE, clean_spell = FALSE, thresh = NULL, resolve_duplicates = TRUE, append = TRUE,
+                           term_set = NULL, collapse_set = NULL,
+                           jw = 0.1, str = 1, str2 = NULL, method2 = "jaccard", q = 1, pref_set = NULL, suff_set = NULL, exclude_set = NULL,
                            jump = 3, plot = FALSE) {
+
+  ######## ARG CHECKS ########
 
   # check that data has minimally been supplied
   if(!exists("x")) {
@@ -148,6 +155,7 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
             or the column names specified in 'ranks' supplied in descending hierarchical order?")
   }
   # subset to columns
+  x1 <- x
   x <- x[,ranks]
 
   # check that the data is character
@@ -162,49 +170,49 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
   # check cleaning routines have been correctly supplied
   if(!is.character(routine)) {
     stop("Routine should be a character vector containing one or more of the following:
-         format_check, discrete_rank, report_tax, resolve_tax")
+         clean_name, spell_check, check_ranks, find_duplicates")
   }
-  if(!any(routine %in% c("clean_name", "spell_check", "discrete_rank", "duplicate_tax"))) {
+  if(!any(routine %in% c("format_check", "spell_check", "check_ranks", "find_duplicates"))) {
     stop("All elements of argument routine are invalid.
-         Valid elements are format_check, spell_check", "discrete_rank", "duplicate_tax")
+         Valid elements are format_check, spell_check, check_ranks, find_duplicates")
   }
-  if(!all(routine %in% c("format_check", "spell_check", "discrete_rank", "duplicate_tax"))) {
+  if(!all(routine %in% c("format_check", "spell_check", "check_ranks", "find_duplicates"))) {
     warning("Some elements of argument routine are invalid and will be ignored.
-            Valid elements are format_check, discrete_rank, report_tax, resolve_tax")
+            Valid elements are format_check, spell_check, check_ranks, find_duplicates")
   }
   # ensure routine vector is clean and correctly ordered
   routine <- unique(routine)
-  routine <- as.vector(na.omit(routine[match(c("spell_check", "discrete_rank", "duplicate_tax"), routine)]))
+  routine <- as.vector(na.omit(routine[match(c("format_check", "spell_check", "check_ranks", "find_duplicates"), routine)]))
 
   # check additional flags
-  if(format_clean) {
+  if(clean_spell) {
 
-    if(is.null(terms)) {
-      terms <- as.list(1:ncol(x))
-      terms_list <- lapply(terms, function(x) {x <- NULL})
+    if(is.null(term_set)) {
+      term_set <- as.list(1:ncol(x))
+      terms_list <- lapply(term_set, function(x) {x <- NULL})
     } else {
-      if(is.atomic(terms)) {
-        terms_list <- lapply(1:ncol(x), function(x) {x <- terms})
+      if(is.atomic(term_set)) {
+        terms_list <- lapply(1:ncol(x), function(x) {x <- term_set})
       }
-      if(is.list(terms)) {terms_list <- terms}
+      if(is.list(term_set)) {terms_list <- term_set}
       if(length(terms_list) != length(ranks)) {
-        stop("Terms should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
+        stop("term_set should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
              vectors to be used at each specific level in x (length must equal number of columns in x/number of ranks")
       }
       if (!all(unlist(lapply(terms_list, class)) %in% c("NULL", "character"))) {
-        stop("Not all elements of terms are of class character")
+        stop("Not all elements of term_set are of class character")
       }
       terms_list <- lapply(terms_list, function(x) {as.vector(na.omit(x))})
     }
 
-    if(is.null(collapse)) {
-      collapse <- as.list(1:ncol(x))
-      collapse_list <- lapply(collapse, function(x) {x <- NULL})
+    if(is.null(collapse_set)) {
+      collapse_set <- as.list(1:ncol(x))
+      collapse_list <- lapply(collapse_set, function(x) {x <- NULL})
     } else {
-      if(is.atomic(collapse)) {
-        collapse_list <- lapply(1:ncol(x), function(x) {x <- collapse})
+      if(is.atomic(collapse_set)) {
+        collapse_list <- lapply(1:ncol(x), function(x) {x <- collapse_set})
       }
-      if(is.list(collapse)) {terms_list <- collapse}
+      if(is.list(collapse_set)) {collapse_list <- collapse_set}
       if(length(collapse_list) != length(ranks)) {
         stop("Collapse should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
              vectors to be used at each specific level in x (length must equal number of columns in x/number of ranks")
@@ -212,7 +220,7 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
       if (!all(unlist(lapply(collapse_list, class)) %in% c("NULL", "character"))) {
         stop("Not all elements of collapse are of class character. Additionally, any regex special characters must be escaped using backslashes")
       }
-      terms_list <- lapply(terms_list, function(x) {as.vector(na.omit(x))})
+      collapse_list <- lapply(collapse_list, function(x) {as.vector(na.omit(x))})
     }
   }
 
@@ -220,14 +228,14 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
   if("spell_check" %in% routine) {
 
     # check any supplied prefixes
-    if(is.null(pref)) {
-      pref <- as.list(1:ncol(x))
-      pref_list <- lapply(pref, function(x) {x <- NULL})
+    if(is.null(pref_set)) {
+      pref_set <- as.list(1:ncol(x))
+      pref_list <- lapply(pref_set, function(x) {x <- NULL})
     } else {
-      if(is.atomic(pref)) {
-        pref_list <- lapply(1:ncol(x), function(x) {x <- pref})
+      if(is.atomic(pref_set)) {
+        pref_list <- lapply(1:ncol(x), function(x) {x <- pref_set})
       }
-      if(is.list(pref)) {pref_list <- pref}
+      if(is.list(pref_set)) {pref_list <- pref_set}
       if(length(pref_list) != length(ranks)) {
         stop("Prefixes should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
              vectors to be used at each specific level in x (length must equal number of columns in x/number of ranks")
@@ -239,14 +247,14 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
     }
 
     # check any supplied suffixes
-    if(is.null(suff)) {
-      suff <- as.list(1:ncol(x))
-      suff_list <- lapply(suff, function(x) {x <- NULL})
+    if(is.null(suff_set)) {
+      suff_set <- as.list(1:ncol(x))
+      suff_list <- lapply(suff_set, function(x) {x <- NULL})
     } else {
-      if(is.atomic(suff)) {
-        suff_list <- lapply(1:ncol(x), function(x) {x <- suff})
+      if(is.atomic(suff_set)) {
+        suff_list <- lapply(1:ncol(x), function(x) {x <- suff_set})
       }
-      if(is.list(suff)) {suff_list <- suff}
+      if(is.list(suff_set)) {suff_list <- suff_set}
       if(length(suff_list) != length(ranks)) {
         stop("Suffixes should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
              vectors to be used at each specific level in x (length must equal number of columns in x/number of ranks")
@@ -258,14 +266,14 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
     }
 
     # check any supplied exclusions
-    if(is.null(exclude)) {
-      exclude <- as.list(1:ncol(x))
-      exclude_list <- lapply(exclude, function(x) {x <- NULL})
+    if(is.null(exclude_set)) {
+      exclude_set <- as.list(1:ncol(x))
+      exclude_list <- lapply(exclude_set, function(x) {x <- NULL})
     } else {
-      if(is.atomic(exclude)) {
-        exclude_list <- lapply(1:ncol(x), function(x) {x <- exclude})
+      if(is.atomic(exclude_set)) {
+        exclude_list <- lapply(1:ncol(x), function(x) {x <- exclude_set})
       }
-      if(is.list(exclude)) {exclude_list <- exclude}
+      if(is.list(exclude_set)) {exclude_list <- exclude_set}
       if(length(exclude_list) != length(ranks)) {
         stop("Exclusions should be supplied either as a vector which will be used at all taxonomic levels, or as a list of
              vectors to be used at each specific level in x (length must equal number of columns in x/number of ranks")
@@ -276,7 +284,7 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
       exclude_list <- lapply(exclude_list, function(x) {as.vector(na.omit(x))})
     }
 
-    if(spell_clean) {
+    if(clean_spell) {
       warning("As spell checking is approximate, automatic resolution is not recommended. Any flagged names should be properly checked")
       if(is.null(thresh)) {
         stop("If spell_clean has been requested, thresh must be specified. This threshold is specific to method2, see spell_check documentation")
@@ -292,49 +300,26 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
       }
     }
   }
-
   # set up output list
   out <- list()
+
+  ######## FORMATTING ########
 
   # check formatting
   if("format_check" %in% routine) {
 
-    chars <- vector()
-    for(i in 1:length(ranks)) {
-      chars[i] <- any(grepl("[^[:alpha:]]", x[,ranks[i]]))
-    }
-    if(sum(chars) != 0) {
-      warnings(paste0("Non-letter characters detected at the following ranks: ", paste0(ranks[chars], collapse = ", ")))
-    }
+    out[[2]] <- format_check(x = x, ranks = ranks, species = species, species_sep = species_sep, verbose = verbose)
+    names(out)[2] <- "formatting"
+    if(verbose) {if(length(out[[2]][[1]]) > 0 | length(out[[2]][[2]] > 0)) {message("See $formatting in output for details")}}
 
-    if(species) {
-      lens <- vector()
-      for(i in 1:(length(ranks) - 1)) {
-        lens[i] <- any(as.logical(unlist(lapply(strsplit(x[,ranks[i]], " "), length)) - 1))
-      }
-      if(sum(lens) != 0) {
-        warning(paste0("The following ranks contain names consisting of more than one word: ", paste0(ranks[lens], collapse = ", "),  ". Supraspecific taxon names are assumed to consist of single words"))
-      }
-      if(any(as.logical(unlist(lapply(strsplit(x[,ranks[length(ranks)]], " "), length)) - 2))) {
-        warning(paste0("The species colum contain names consisting of more than two words: ", paste0(ranks[lens], collapse = ", "),  ". Species names are assumed to consist of no more than two words"))
-      }
-
-    } else {
-      lens <- vector()
+    if(clean_name) {
       for(i in 1:length(ranks)) {
-        lens[i] <- any(as.logical(unlist(lapply(strsplit(x[,ranks[i]], " "), length)) - 1))
-      }
-      if(sum(lens) != 0) {
-        warnings(paste0("The following ranks contain names consisting of more than one word: ", paste0(ranks[lens], collapse = ", "),  ". Supraspecific taxon names are assumed to consist of single words"))
-      }
-    }
-
-    if(format_clean) {
-      for(i in 1:length(ranks)) {
-        x[,i] <- clean_name(x[,i], terms = terms_list[[i]], collapse = collapse_list[[i]])
+        x[,i] <- clean_name(x[,i], terms = terms_list[[i]], collapse = collapse_list[[i]], verbose = verbose)
       }
     }
   }
+
+  ######## SYNONYMS ########
 
   # check spelling
   if("spell_check" %in% routine) {
@@ -345,11 +330,14 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
                                      jw = jw, str = str, str2 = str2, method2 = method2,
                                      q = q, pref = pref_list[[i + 1]], suff = suff_list[[i + 1]], exclude = exclude_list[[i + 1]])
       spell_list[[i]] <- cbind.data.frame(level = rep(ranks[i + 1], nrow(spell_list[[i]])), spell_list[[i]])
-      message(paste0(nrow(spell_list[[i]]), " potential synonyms flagged at the ", ranks[i + 1], " level"))
+      if(verbose) {message(paste0(nrow(spell_list[[i]]), " potential synonyms flagged at the ", ranks[i + 1], " level"))}
     }
-    out[[1]] <- do.call(rbind, spell_list)
-    if(spell_clean) {
-      ob <- out[[1]]
+    out[[3]] <- do.call(rbind, spell_list)
+    names(out)[3] <- "synonyms"
+    if(verbose) {if(nrow(out[[3]]) > 0) {message("See $synonyms in output for details")}}
+
+    if(clean_spell) {
+      ob <- out[[2]]
       for(j in 1:nrow(ob)) {
         if(ob$m2[j] < thresh[i]) {
           x[which(x[,ob$level[j]] == c(ob$t1[j], ob$t2[j])[which.min(c(ob$freq1[j], ob$freq2[j]))])] <-
@@ -359,41 +347,62 @@ check_taxonomy <- function(x, ranks = NULL, species = FALSE, routine = c("format
     }
   }
 
-  # check rank discretion (only reporting if requested)
+  ######## RANKS ########
+
+  # check rank discretion (only reporting if requested - done anyway as a prerequisite for resolve_duplicates)
   rank_check <- check_ranks(x, ranks = rev(ranks))
   crossed_all <- rev(rank_check$crossed_all)
-  if("discrete_rank" %in% routine) {
-   out[[2]] <- rank_check
-   message(paste0(length(unique(unlist(crossed_all)))), " cross-rank names identified")
+  if("check_ranks" %in% routine) {
+
+   out[[4]] <- rank_check
+   names(out)[4] <- "ranks"
+   if(verbose) {message(paste0(length(unique(unlist(crossed_all)))), " cross-rank names identified")}
+   if(verbose) {if(any(unlist(lapply(out[[4]][[1]], length))) > 0 | any(unlist(lapply(out[[4]][[2]], length))) > 0) {message("See $ranks in output for details")}}
   }
 
+  ######## CONFLICTS ########
+
   # check classification
-  if("duplicate_tax" %in% routine) {
-    out[[3]] <- find_duplicates(x = x, ranks = ranks)
-    message(paste0(nrow(out[[3]]), " conflicting classifications identified"))
-    if(tax_clean) {
+  if("find_duplicates" %in% routine) {
+
+    out[[5]] <- find_duplicates(x = x, ranks = ranks)
+    names(out)[5] <- "duplicates"
+    if(verbose) {message(paste0(nrow(out[[5]]), " conflicting classifications identified"))}
+    if(verbose) {message("See $duplicates in output for details")}
+
+    if(resolve_duplicates) {
       rnks <- names(crossed_all)[!names(crossed_all) %in% ranks[length(ranks)]]
       for(i in 1:length(rnks)) {
         x[which(x[,rnks[i]] %in% crossed_all[[i]]), rnks[i]] <- paste0(x[which(x[,rnks[i]] %in% crossed_all[[i]]), rnks[i]], "_RNK", i)
       }
-      x <- resolve_duplicates(x = x, ranks = ranks)
+      x <- resolve_duplicates(x = x, ranks = ranks, verbose = verbose)
     }
   }
 
+  ######## RETURN ########
+
   # format output
-  if(format_clean | tax_clean | spell_clean) {
+  cleaned <- FALSE
+  if(clean_name | clean_spell | resolve_duplicates) {
+    cleaned = TRUE
     if(!append) {
       # remove the duplicate classification suffixes
       x <- apply(x, 2, function(y) {gsub("[A-Z]$", "", x = y)})
       # remove the rank discrete suffixes
       x <- apply(x, 2, function(y) {gsub("_RNK*$", "", x = y)})
     }
-    routine <- c(routine, "cleaned_data")
-    out[[4]] <- x
+    x1[,ranks] <- x
+    out[[1]] <- x1
+    names(out)[1] <- "data"
+    if(!report) {
+      out <- x1
+    }
+    if(verbose & report) {message("See $data in output for the cleaned dataset")}
   }
-  # remove null elements if present
-  to_remove <- is.null(out)
-  if(sum(to_remove) > 0) {out <- out[!to_remove]}
-  names(out) <- routine
+  # remove null elements of list if needed
+  if(is.list(out)) {
+    to_remove <- is.null(out)
+    if(sum(to_remove) > 0) {out <- out[!to_remove]}
+  }
   return(out)
 }

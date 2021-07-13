@@ -6,24 +6,27 @@
 \usage{
 check_taxonomy(
   x,
-  ranks = NULL,
+  ranks = c("phylum", "class", "order", "family", "genus"),
   species = FALSE,
-  routine = c("format_check", "spell_check", "discrete_rank", "duplicate_tax"),
-  format_clean = FALSE,
-  spell_clean = FALSE,
+  species_sep = NULL,
+  routine = c("format_check", "spell_check", "discrete_ranks", "find_duplicates"),
+  report = TRUE,
+  verbose = TRUE,
+  clean_name = FALSE,
+  clean_spell = FALSE,
   thresh = NULL,
-  tax_clean = TRUE,
+  resolve_duplicates = TRUE,
   append = TRUE,
-  terms = NULL,
-  collapse = NULL,
+  term_set = NULL,
+  collapse_set = NULL,
   jw = 0.1,
   str = 1,
   str2 = NULL,
   method2 = "jaccard",
   q = 1,
-  pref = NULL,
-  suff = NULL,
-  exclude = NULL,
+  pref_set = NULL,
+  suff_set = NULL,
+  exclude_set = NULL,
   jump = 3,
   plot = FALSE
 )
@@ -43,6 +46,13 @@ column. As the data must be supplied in hierarchical order,
 this column will naturally be the last column in x and
 species-specific spell checks will be performed on this column.}
 
+\item{species_sep}{A character vector of length one specifying
+the genus name and specific epithet in the species column, if
+present
+\itemize{
+\item Flagging routine arguments *
+}}
+
 \item{routine}{A character vector determining the flagging
 and cleaning routines to employ. Valid values are format_check (check for
 non letter characters and the number of words in names), spell_check
@@ -50,11 +60,22 @@ non letter characters and the number of words in names), spell_check
 taxonomic names are unique to their rank), duplicate_tax (flag
 conflicting higher classifications of a given taxon)}
 
-\item{format_clean}{If TRUE, the function will return cleaned versions of the columns in x
+\item{report}{A logical of length one determining if the flagging outputs
+of each cleaning routine should be returned to the user for inspection.
+This is different to @param verbose, which controls whether flagging
+should additionally be reported to the user on the console}
+
+\item{verbose}{A logical determining if function progress and flagged
+errors should be reported to the console
+\itemize{
+\item Cleaning routine arguments *
+}}
+
+\item{clean_name}{If TRUE, the function will return cleaned versions of the columns in x
 using the routines in @seealso clean_name. These routines can be
 altered using the 'terms' and 'collapse' arguments.}
 
-\item{spell_clean}{If TRUE, the function will return a cleaned version
+\item{clean_spell}{If TRUE, the function will return a cleaned version
 of the supplied taxonomic dataframe, using the supplied threshold
 for the similarity method given by method2, to automatically update
 any names in pairs of flagged synonyms to the more frequent spelling.
@@ -65,7 +86,7 @@ and the threshold left as NULL}
 below which flagged pairs of names will be considered synonyms and
 resolved automatically. See @seealso spell_check for details on method2}
 
-\item{tax_clean}{If TRUE, the function will return a cleaned version
+\item{resolve_duplicates}{If TRUE, the function will return a cleaned version
 of the supplied taxonomic dataframe, using @seealso resolve_duplicates
 to resolve conflicts in the way documented by the function. Both
 spell_clean and tax_clean can both be TRUE to return a dataset cleaned
@@ -74,103 +95,99 @@ by both methods}
 \item{append}{If TRUE, any suffixes used during cleaning will
 be retained in the cleaned version of the data. This is preferable
 as it ensures that all taxonomic names are rank-discrete and
-uniquely classified}
+uniquely classified
+\itemize{
+\item Routine specific arguments *
+}}
 
-\item{terms}{If not NULL, a character vector of terms (which
-will be used at all ranks) or a list of rank-specific terms to be cleaned
-from taxonomic names if format_clean = TRUE. If a list, this
-should be given in descending rank order. Called by @seealso
-clean_name}
+\item{term_set}{A character vector of terms (to be
+used at all ranks) or a list of rank-specific terms
+which will be supplied, element-wise as the @param collapse argument
+called by @seealso clean_name. If a list, this}
 
-\item{collapse}{If not NULL, a character vector of string (which
-will be used at all ranks) or a list of rank-specific strings which will
-be collapsed in taxonomic names if format_clean = TRUE (i.e. replaced by "",
-rather than the default " "). If one of the collapse terms is a regex special
-character, it will need to be escaped, e.g. "\-". If a list, this
-should be given in descending rank order. Called by @seealso
-clean_name}
+\item{collapse_set}{A character vector of character strings (to be
+used at all ranks) or a list of rank-specific strings
+which will be supplied, element-wise as the @param collapse argument
+called by @seealso clean_name. If a list, this
+should be given in descending rank order}
 
-\item{jw}{a numeric greater than 0 and less than 1. This is
-the distance threshold below which potential synonyms will be
-considered. Called by @seealso spell_check}
+\item{jw}{Called by @seealso spell_check}
 
-\item{str}{A positive integer specifying the
-number of matching characters at the beginning of synonym
-pairs. By default 1, i.e. the first letters must match. Called
-by @seealso spell_check}
+\item{str}{Called by @seealso spell_check}
 
-\item{str2}{If not NULL, a positive integer specifying the
-number of matching characters at the end of synonym pairs.
-Called by @seealso spell_check}
+\item{str2}{Called by @seealso spell_check}
 
-\item{method2}{A character string of length one corresponding
-to one of the methods used by @seealso afind. One of "osa",
-"lv", "dl", "hamming", "lcs", "qgram", "cosine",
-"running_cosine", "jaccard", or "soundex". Called by @seealso
-spell_check}
+\item{method2}{Called by @seealso spell_check}
 
-\item{q}{q-gram size. Only used when method2 is "qgram",
-"cosine" or "Jaccard". Called by @seealso spell_check}
+\item{q}{Called by @seealso spell_check}
 
-\item{pref}{If not NULL, a character vector of prefixes (which
+\item{pref_set}{A character vector of prefixes (which
 will be used at all ranks) or a list of rank-specific prefixes,
-which may result in erroneously low JW distances. Synonyms will only
-be considered if both terms share the same prefix. If a list, this
-should be given in descending rank order. Called by @seealso
-spell_check}
+which will be supplied, element-wise as the @param pref argument
+called by @seealso spell_check. If a list, this
+should be given in descending rank order.}
 
-\item{suff}{If not NULL, a character vector of prefixes (which
-will be used at all ranks) or a list of rank-specific prefixes,
-which may result in erroneously low JW distances. Synonyms will only
-be considered if both terms share the same suffix. If a list, this
-should be given in descending rank order. Called by @seealso
-spell_check}
+\item{suff_set}{A character vector of suffixes (which
+will be used at all ranks) or a list of rank-specific suffixes,
+which will be supplied, element-wise as the @param suff argument
+called by @seealso spell_check. If a list, this
+should be given in descending rank order.}
 
-\item{exclude}{If not NULL, a character vector of group names (which
-will be used at all ranks) or a list of rank-specific group names,
-which should be skipped - useful for groups which are known
-to contain potentially similar terms. If a list, this
-should be given in descending rank order. Called by @seealso
-spell_check}
+\item{exclude_set}{A character vector of terms to exclude (which
+will be used at all ranks) or a list of rank-specific exclusion terms,
+which will be supplied, element-wise as the @param exclude argument
+called by @seealso spell_check. If a list, this
+should be given in descending rank order.}
 
-\item{jump}{The maximum number of ranks between the rank of
-classification conflict and the next common classification (if present),
-below which the divergence will be taken as conflicting.
-Called by @seealso resolve_duplicates}
+\item{jump}{Called by @seealso resolve_duplicates}
 
-\item{plot}{A logical speciying if conflicting classifications should
-be plotted. Called by @seealso resolve_duplicates}
+\item{plot}{Called by @seealso resolve_duplicates}
 }
 \value{
-A list with elements corresponding to the outputs of the
-chosen flagging routines (three by default), plus
-a cleaned taxonomic dataframe if any of format_clean, spell_clean or tax_clean
-are TRUE. See @seealso spell_clean, @seealso check_ranks and @seealso
-find_duplicates for details of the structure of the outputs
+A list with elements corresponding to the outputs of the chosen
+flagging routines (four by default: $formatting, $synonyms, $ranks, $duplicates),
+plus a cleaned verison of the data ($data) if any of clean_name, clean_spell
+or resolve_duplicates are TRUE. See @seealso format_check, @seealso spell_clean,
 }
 \description{
-Function to implement a multi-step cleaning routine for
-hierarchically structured taxonomic data. The first part
-of the routine performs a few presumptive checks on all
-columns, scanning for non letter characters and checking
-the number of words in each string (all assumed to contain
-1 word, aside from species names). If chosen, @seealso
-clean_name is called to ensure correct formatting. The second
-part of the routine calls @seealso spell_check to flag
-spelling errors within a given taxonomic group. The third
-part of the routine calls @seealso check_ranks to flag
-name re-use at different levels. Some of these cases may
-arise when a name has been unfortunately, but validly
-used to refer to different groups at different taxonomic
-levels. The fourth part of the routine calls @seealso
-find_duplicates to flag variable higher classifications for
-a given taxon. The function flags errors by default, but can
-return a fully cleaned taxonomic scheme with conflicting
-classifications eliminated or split by the addition of suffixes
-to give unique taxonomic names. In the case of non-rank unique
-names, the suffixes are of the form _RNK + the column number,
-e.g _RNK1. For conflicting classifications, cleaning is
-performed using @seealso resolve_duplicates, and in the case
-of re-use of a name at the same rank for genuinely different
-taxa, suffixes are capital letters, e.g. AlloniaA, AlloniaB
+Wrapper functions to implement a multi-step cleaning routine
+for hierarchically structured taxonomic data. The first part
+of the routine calls @seealso format_check to perform a few
+presumptive checks on all columns, scanning for non-letter
+characters and checking the number of words in each string.
+If chosen, @seealso clean_name is called to ensure correct
+formatting. The second part of the routine calls @seealso
+spell_check to flag spelling discrepancies between names within
+a given taxonomic group. If chosen, the function can
+automatically impose the more frequent spelling. The third
+part of the routine calls @seealso discrete_ranks to flag
+name re-use at different taxonomic levels. Some of these cases
+may arise when a name has been unfortunately, (although
+permissibly) used to refer to groups at different taxonomic levels,
+or where a higher classification may have been inserted as a
+placeholder for a missing lower classification. If chosen, in the
+case of non-rank unique names, suffixes of the form _RNK + the
+column number, e.g _RNK1, are added to ensure that the resulting
+names are unique to their rank. The fourth part of the routine
+calls @seealso find_duplicates to flag variable higher classifications
+for a given taxon, including cases where a higher classification
+is missing for one instance of a taxon, but present for the others.
+If chosen, @seealso resolve_duplicates is called to ensure a
+consistent classification is imposed. For cases where a name has
+been re-used at the same rank for genuinely different taxa
+(not permissible, unlike name re-use at different ranks) suffixes
+are added as capital letters, e.g. TaxonA, TaxonB. If any of the
+automatic cleaning routines are employed, the function will returned
+a cleaned version of the dataset. If the use of suffixes is not
+desirable, the function behaviour can be altered so that any
+suffixes are dropped before returning.
+}
+\details{
+\itemize{
+\item Data supply arguments *
+}
+}
+\seealso{
+discrete_ranks and @seealso find_duplicates for details of the structure
+of the flagging outputs
 }
