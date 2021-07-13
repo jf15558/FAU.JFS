@@ -151,7 +151,7 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
   }
   # check that ranks are in hierarchical order
   if(length(unique(x[,ranks[length(ranks)]])) < length(unique(x[,ranks[(length(ranks) - 1)]]))) {
-    warning("Higher taxonomy is more diverse than lower taxonomy. Are the columns in x
+    message("Higher taxonomy is more diverse than lower taxonomy. Are the columns in x
             or the column names specified in 'ranks' supplied in descending hierarchical order?")
   }
   # subset to columns
