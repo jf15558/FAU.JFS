@@ -54,7 +54,7 @@ tgraph <- function(x, ranks = NULL, verbose = TRUE) {
   x <- x[!ind,]
 
   # flag non-discrete names if they occur
-  test <- check_ranks(x = x, ranks = ranks)
+  test <- discrete_ranks(x = x, ranks = ranks)
   t1 <- unlist(test$crossed_adj)
   t2 <- unlist(test$crossed_all)
   if(length(t1) != 0 | length(t2) != 0) {

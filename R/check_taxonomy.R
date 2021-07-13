@@ -350,9 +350,9 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
   ######## RANKS ########
 
   # check rank discretion (only reporting if requested - done anyway as a prerequisite for resolve_duplicates)
-  rank_check <- check_ranks(x, ranks = rev(ranks))
+  rank_check <- discrete_ranks(x, ranks = rev(ranks))
   crossed_all <- rev(rank_check$crossed_all)
-  if("check_ranks" %in% routine) {
+  if("discrete_ranks" %in% routine) {
 
    out[[4]] <- rank_check
    names(out)[4] <- "ranks"

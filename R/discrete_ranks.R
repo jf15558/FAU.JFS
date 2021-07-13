@@ -1,6 +1,6 @@
 #' roxygen documentation
 #'
-#' check_ranks
+#' discrete_ranks
 #'
 #' Function for checking whether names in one column of a
 #' hierarchically organised dataframe re-occur at other levels.
@@ -23,7 +23,7 @@
 #' @importFrom stats na.omit
 #' @export
 
-check_ranks <- function(x, ranks = NULL) {
+discrete_ranks <- function(x, ranks = NULL) {
 
   if(!exists("x")) {
     stop("Please supply a dataframe and optionally a vector of ranks to check")
