@@ -170,19 +170,19 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
   # check cleaning routines have been correctly supplied
   if(!is.character(routine)) {
     stop("Routine should be a character vector containing one or more of the following:
-         clean_name, spell_check, check_ranks, find_duplicates")
+         clean_name, spell_check, discrete_ranks, find_duplicates")
   }
-  if(!any(routine %in% c("format_check", "spell_check", "check_ranks", "find_duplicates"))) {
+  if(!any(routine %in% c("format_check", "spell_check", "discrete_ranks", "find_duplicates"))) {
     stop("All elements of argument routine are invalid.
-         Valid elements are format_check, spell_check, check_ranks, find_duplicates")
+         Valid elements are format_check, spell_check, discrete_ranks, find_duplicates")
   }
-  if(!all(routine %in% c("format_check", "spell_check", "check_ranks", "find_duplicates"))) {
+  if(!all(routine %in% c("format_check", "spell_check", "discrete_ranks", "find_duplicates"))) {
     warning("Some elements of argument routine are invalid and will be ignored.
-            Valid elements are format_check, spell_check, check_ranks, find_duplicates")
+            Valid elements are format_check, spell_check, discrete_ranks, find_duplicates")
   }
   # ensure routine vector is clean and correctly ordered
   routine <- unique(routine)
-  routine <- as.vector(na.omit(routine[match(c("format_check", "spell_check", "check_ranks", "find_duplicates"), routine)]))
+  routine <- as.vector(na.omit(routine[match(c("format_check", "spell_check", "discrete_ranks", "find_duplicates"), routine)]))
 
   # check additional flags
   if(clean_spell) {
