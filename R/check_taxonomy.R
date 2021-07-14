@@ -400,7 +400,7 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
   }
   # remove null elements of list if needed
   if(is.list(out)) {
-    to_remove <- is.null(out)
+    to_remove <- unlist(lapply(out, is.null))
     if(sum(to_remove) > 0) {out <- out[!to_remove]}
   }
   return(out)
