@@ -1,6 +1,4 @@
-#' roxygen documentation
-#'
-#' resolve_duplicates
+#' resolve_duplicates2
 #'
 #' Function for identifying and resolving alternative higher
 #' assignments in a hierarchically structured dataframe.
@@ -39,7 +37,7 @@
 #' @import igraph
 #' @export
 
-resolve_duplicates <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose = TRUE) {
+resolve_duplicates2 <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose = TRUE) {
 
   # check arguments
   if(!exists("x")) {
@@ -103,7 +101,7 @@ resolve_duplicates <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose 
           # if the focal taxa has true duplicate classifications
         } else {
           # resolve duplicate paths
-          to_do <- assess_duplicates(st, node = whichd[j], jump = jump, plot = plot)
+          to_do <- assess_duplicates2(st, node = whichd[j], jump = jump)
 
           # either update taxonomy
           if(length(grep("proposed", to_do[[1]]$dec)) == 1) {
