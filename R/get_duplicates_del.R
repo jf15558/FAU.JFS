@@ -1,4 +1,4 @@
-#' get_duplicates
+#' get_duplicates_del
 #'
 #' Function to detect elements with multiple higher
 #' classifications in a tgraph object. Detection is
@@ -14,7 +14,7 @@
 #' as focal elements
 #' @import igraph
 
-get_duplicates <- function(x, ranks = NULL) {
+get_duplicates_del <- function(x, ranks = NULL) {
 
   # check for valid arguments
   if(!exists("x") | class(x) != "tgraph") {

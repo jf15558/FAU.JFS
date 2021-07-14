@@ -37,18 +37,10 @@ assess_duplicates <- function(x, node, mode = c("frequency", "completeness"), ju
   if(!exists("x") | !(class(x) == "tgraph")) {
     stop("Please supply a tgraph object")
   }
-  if(x$type == "edgelist") {
-    x <- tgraph_tedgelist(x)
-  }
-  if(!exists("node") | !(class(node) %in% c("tvertseq", "numeric", "character"))) {
+  if(!exists("node") | class(node) != "character") {
     stop("Please supply one or more duplicate taxa for testing")
   }
-  if(class(node) == "tvertseq") {
-    node <- igraph::V(node$taxa)$name
-  }
-  if(class(node) == "character") {
-    node <- which(igraph::V(x$taxa)$name %in% node)
-  }
+  node <- which(igraph::V(x$taxa)$name %in% node)
 
   # set frequency as the default decision, if not overwritten in the arguments
   if(length(mode) == 2) {
@@ -72,10 +64,6 @@ assess_duplicates <- function(x, node, mode = c("frequency", "completeness"), ju
     # get complete subgraph for the taxon in question
     paths <- igraph::ego(graph = x$taxa, order = n, nodes = nd, mode = "out")[[1]]
     test <- igraph::induced_subgraph(graph = x$taxa, vids = paths)
-    # plotting
-    if(plot) {
-      plot_t(x = x, taxa = nd, mode = "parent")
-    }
     out[[1]] <- paths[1]
     keep_going <- TRUE
 

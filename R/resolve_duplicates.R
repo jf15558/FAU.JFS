@@ -1,5 +1,3 @@
-#' roxygen documentation
-#'
 #' resolve_duplicates
 #'
 #' Function for identifying and resolving alternative higher
@@ -78,7 +76,14 @@ resolve_duplicates <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose 
         # small tgraph
         st <- tgraph(subst, verbose = FALSE)
         # coerce to tvertseq (mode = parent)
-        sv <- as_tvertseq(x = st, mode = "parent")
+        sv <- list()
+        sv[[1]] <- igraph::induced_subgraph(st$taxa, which(igraph::V(st$taxa)$rank == max(st$ranks)))
+        sv[[1]] <- igraph::delete.edges(sv[[1]], edges = igraph::E(sv[[1]]))
+        sv[[2]] <- st$ranks
+        sv[[3]] <- st$taxa
+        sv[[4]] <- mode
+        names(sv) <- c("taxa", "ranks", "seq", "mode")
+        class(sv) <- "tvertseq"
 
         # if the 'duplicates' are cases where the higher ranks are NA
         if(igraph::V(sv$taxa)$degree == 1) {
@@ -96,7 +101,7 @@ resolve_duplicates <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose 
           # if the focal taxa has true duplicate classifications
         } else {
           # resolve duplicate paths
-          to_do <- assess_duplicates(st, node = whichd[j], jump = jump, plot = plot)
+          to_do <- assess_duplicates(st, node = whichd[j], jump = jump)
 
           # either update taxonomy
           if(length(grep("proposed", to_do[[1]]$dec)) == 1) {

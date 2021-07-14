@@ -374,7 +374,7 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
       for(i in 1:length(rnks)) {
         x[which(x[,rnks[i]] %in% crossed_all[[i]]), rnks[i]] <- paste0(x[which(x[,rnks[i]] %in% crossed_all[[i]]), rnks[i]], "_RNK", i)
       }
-      x <- resolve_duplicates2(x = x, ranks = ranks, verbose = verbose)
+      x <- resolve_duplicates(x = x, ranks = ranks, verbose = verbose)
     }
   }
 

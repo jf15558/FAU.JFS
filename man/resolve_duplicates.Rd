@@ -2,7 +2,7 @@
 % Please edit documentation in R/resolve_duplicates.R
 \name{resolve_duplicates}
 \alias{resolve_duplicates}
-\title{roxygen documentation}
+\title{resolve_duplicates}
 \usage{
 resolve_duplicates(x, ranks = NULL, jump = 4, plot = FALSE, verbose = TRUE)
 }
@@ -34,9 +34,6 @@ classifications resolved, giving the classification a strict
 tree structure
 }
 \description{
-resolve_duplicates
-}
-\details{
 Function for identifying and resolving alternative higher
 assignments in a hierarchically structured dataframe.
 Columns are checked from the lowest to the highest rank for
