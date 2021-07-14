@@ -323,17 +323,21 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
   # check spelling
   if("spell_check" %in% routine) {
 
+    out[[3]] <- 1
+    names(out)[3] <- "synonyms"
     spell_list <- list()
     for(i in 1:(length(ranks) - 1)) {
-      spell_list[[i]] <- spell_check(x = x, terms = ranks[i + 1], groups = ranks[i],
-                                     jw = jw, str = str, str2 = str2, alternative = alternative,
-                                     q = q, pref = pref_list[[i + 1]], suff = suff_list[[i + 1]], exclude = exclude_list[[i + 1]], verbose = verbose)
-      spell_list[[i]] <- cbind.data.frame(level = rep(ranks[i + 1], nrow(spell_list[[i]])), spell_list[[i]])
-      if(verbose) {message(paste0(nrow(spell_list[[i]]), " potential synonyms flagged at the ", ranks[i + 1], " level"))}
+      foo <- spell_check(x = x, terms = ranks[i + 1], groups = ranks[i],
+                         jw = jw, str = str, str2 = str2, alternative = alternative,
+                         q = q, pref = pref_list[[i + 1]], suff = suff_list[[i + 1]], exclude = exclude_list[[i + 1]], verbose = verbose)
+      spell_list[[i]] <- foo
+      if(!is.null(foo)) {
+        spell_list[[i]] <- cbind.data.frame(level = rep(ranks[i + 1], nrow(spell_list[[i]])), spell_list[[i]])
+        if(verbose) {message(paste0(nrow(spell_list[[i]]), " potential synonyms flagged at the ", ranks[i + 1], " level"))}
+      }
     }
     out[[3]] <- do.call(rbind, spell_list)
-    names(out)[3] <- "synonyms"
-    if(verbose) {if(nrow(out[[3]]) > 0) {message("See $synonyms in output for details")}}
+    if(verbose) {if(!is.null(out[[3]])) {message("See $synonyms in output for details")}}
 
     if(clean_spell) {
       ob <- out[[2]]
