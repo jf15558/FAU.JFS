@@ -15,7 +15,7 @@ check_taxonomy(
   clean_name = FALSE,
   clean_spell = FALSE,
   thresh = NULL,
-  resolve_duplicates = TRUE,
+  resolve_duplicates = FALSE,
   append = TRUE,
   term_set = NULL,
   collapse_set = NULL,

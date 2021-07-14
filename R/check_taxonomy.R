@@ -117,7 +117,6 @@
 #' should be given in descending rank order.
 #' @param jump Called by @seealso resolve_duplicates
 #' @param plot Called by @seealso resolve_duplicates
-#'
 #' @return A list with elements corresponding to the outputs of the chosen
 #' flagging routines (four by default: $formatting, $synonyms, $ranks, $duplicates),
 #' plus a cleaned verison of the data ($data) if any of clean_name, clean_spell
@@ -129,7 +128,7 @@
 
 check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "genus"), species = FALSE, species_sep = NULL,
                            routine = c("format_check", "spell_check", "discrete_ranks", "find_duplicates"), report = TRUE, verbose = TRUE,
-                           clean_name = FALSE, clean_spell = FALSE, thresh = NULL, resolve_duplicates = TRUE, append = TRUE,
+                           clean_name = FALSE, clean_spell = FALSE, thresh = NULL, resolve_duplicates = FALSE, append = TRUE,
                            term_set = NULL, collapse_set = NULL,
                            jw = 0.1, str = 1, str2 = NULL, alternative = "jaccard", q = 1, pref_set = NULL, suff_set = NULL, exclude_set = NULL,
                            jump = 3, plot = FALSE) {
