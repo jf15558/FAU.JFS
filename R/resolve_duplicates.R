@@ -78,14 +78,7 @@ resolve_duplicates <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose 
         # small tgraph
         st <- tgraph(subst, verbose = FALSE)
         # coerce to tvertseq (mode = parent)
-        sv <- list()
-        sv[[1]] <- igraph::induced_subgraph(st$taxa, which(igraph::V(st$taxa)$rank == max(x$ranks)))
-        sv[[1]] <- igraph::delete.edges(out[[1]], edges = igraph::E(out[[1]]))
-        sv[[2]] <- st$ranks
-        sv[[3]] <- st$taxa
-        sv[[4]] <- mode
-        names(sv) <- c("taxa", "ranks", "seq", "mode")
-        class(sv) <- "tvertseq"
+        sv <- as_tvertseq(x = st, mode = "parent")
 
         # if the 'duplicates' are cases where the higher ranks are NA
         if(igraph::V(sv$taxa)$degree == 1) {
