@@ -309,7 +309,7 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
 
     out[[2]] <- format_check(x = x, ranks = ranks, species = species, species_sep = species_sep, verbose = verbose)
     names(out)[2] <- "formatting"
-    if(verbose) {if(length(out[[2]][[1]]) > 0 | length(out[[2]][[2]] > 0)) {message("See $formatting in output for details")}}
+    if(verbose) {if(length(out[[2]][[1]]) > 0 | length(out[[2]][[2]]) > 0) {message("See $formatting in output for details")}}
 
     if(clean_name) {
       for(i in 1:length(ranks)) {
