@@ -5,32 +5,31 @@
 #' of the routine calls @seealso format_check to perform a few
 #' presumptive checks on all columns, scanning for non-letter
 #' characters and checking the number of words in each string.
-#' If chosen, @seealso clean_name is called to ensure correct
-#' formatting. The second part of the routine calls @seealso
-#' spell_check to flag spelling discrepancies between names within
-#' a given taxonomic group. If chosen, the function can
-#' automatically impose the more frequent spelling. The third
-#' part of the routine calls @seealso discrete_ranks to flag
-#' name re-use at different taxonomic levels. Some of these cases
-#' may arise when a name has been unfortunately, (although
+#' By default, @seealso clean_name is called to ensure correct
+#' formatting as this improves downstream checking. The second
+#' part of the routine calls @seealso spell_check to flag spelling
+#' discrepancies between names within a given taxonomic group. If
+#' chosen, the function can automatically impose the more frequent
+#' spelling. The third part of the routine calls @seealso discrete_ranks
+#' to flag name re-use at different taxonomic levels. Some of these
+#' cases may arise when a name has been unfortunately, (although
 #' permissibly) used to refer to groups at different taxonomic levels,
 #' or where a higher classification may have been inserted as a
-#' placeholder for a missing lower classification. If chosen, in the
-#' case of non-rank unique names, suffixes of the form _RNK + the
-#' column number, e.g _RNK1, are added to ensure that the resulting
-#' names are unique to their rank. The fourth part of the routine
-#' calls @seealso find_duplicates to flag variable higher classifications
-#' for a given taxon, including cases where a higher classification
-#' is missing for one instance of a taxon, but present for the others.
-#' If chosen, @seealso resolve_duplicates is called to ensure a
-#' consistent classification is imposed. For cases where a name has
-#' been re-used at the same rank for genuinely different taxa
-#' (not permissible, unlike name re-use at different ranks) suffixes
-#' are added as capital letters, e.g. TaxonA, TaxonB. If any of the
-#' automatic cleaning routines are employed, the function will returned
-#' a cleaned version of the dataset. If the use of suffixes is not
-#' desirable, the function behaviour can be altered so that any
-#' suffixes are dropped before returning.
+#' placeholder for a missing lower classification. The fourth part of
+#' the routine calls @seealso find_duplicates to flag variable higher
+#' classifications for a given taxon, including cases where a higher
+#' classification is missing for one instance of a taxon, but present
+#' for the others. If chosen, @seealso resolve_duplicates is called
+#' to ensure a consistent classification is imposed. For cases where
+#' a name has been re-used at the same rank for genuinely different
+#' taxa (not permissible, unlike name re-use at different ranks)
+#' suffixes are added as capital letters, e.g. TaxonA, TaxonB. If
+#' any of the automatic cleaning routines are employed (again the
+#' default behaviour as clean_name is TRUE by default), the function
+#' will return are a cleaned version of the dataset. If the use of
+#' suffixes from @seealso resolve_duplicates is not desirable,
+#' the function behaviour can be altered so that any suffixes are
+#' dropped before returning.
 #'
 #' * Data supply arguments *
 #' @param x A dataframe with hierarchically organised
@@ -63,9 +62,9 @@
 #' errors should be reported to the console
 #'
 #' * Cleaning routine arguments *
-#' @param clean_name If TRUE, the function will return cleaned versions of the columns in x
-#' using the routines in @seealso clean_name. These routines can be
-#' altered using the 'terms' and 'collapse' arguments.
+#' @param clean_name If TRUE, the function will return cleaned versions of
+#' the columns in x using the routines in @seealso clean_name. These routines
+#' can be altered using the 'term_set' and 'collapse_set' arguments.
 #' @param clean_spell If TRUE, the function will return a cleaned version
 #' of the supplied taxonomic dataframe, using the supplied threshold
 #' for the similarity method given by method2, to automatically update
@@ -354,12 +353,11 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
 
   # check rank discretion (only reporting if requested - done anyway as a prerequisite for resolve_duplicates)
   rank_check <- discrete_ranks(x, ranks = rev(ranks))
-  crossed_all <- rev(rank_check$crossed_all)
   if("discrete_ranks" %in% routine) {
 
    out[[4]] <- rank_check
    names(out)[4] <- "ranks"
-   if(verbose) {message(paste0(length(unique(unlist(crossed_all)))), " cross-rank names identified")}
+   if(verbose) {message(paste0(length(unique(unlist(rank_check$crossed_all)))), " cross-rank names identified")}
    if(verbose) {if(any(unlist(lapply(out[[4]][[1]], length))) > 0 | any(unlist(lapply(out[[4]][[2]], length))) > 0) {message("See $ranks in output for details")}}
   }
 
@@ -374,11 +372,16 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
     if(verbose) {message("See $duplicates in output for details")}
 
     if(resolve_duplicates) {
-      rnks <- names(crossed_all)[!names(crossed_all) %in% ranks[length(ranks)]]
-      for(i in 1:length(rnks)) {
-        x[which(x[,rnks[i]] %in% crossed_all[[i]]), rnks[i]] <- paste0(x[which(x[,rnks[i]] %in% crossed_all[[i]]), rnks[i]], "_RNK", i)
+
+      # paste a numeric at the start of each column to ensure rank discretion
+      for(i in 1:ncol(x)) {
+        x[,i] <- paste0(i, x[,i])
       }
       x <- resolve_duplicates(x = x, ranks = ranks, verbose = verbose)
+      # remove numeric
+      for(i in 1:length(rnks)) {
+        x[,i] <- gsub("[0-9]", "", x[,i])
+      }
     }
   }
 
@@ -388,12 +391,8 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
   cleaned <- FALSE
   if(clean_name | clean_spell | resolve_duplicates) {
     cleaned = TRUE
-    if(!append) {
-      # remove the duplicate classification suffixes
-      x <- apply(x, 2, function(y) {gsub("[A-Z]$", "", x = y)})
-      # remove the rank discrete suffixes
-      x <- apply(x, 2, function(y) {gsub("_RNK*$", "", x = y)})
-    }
+    # remove the duplicate classification suffixes if requested
+    if(!append) {x <- apply(x, 2, function(y) {gsub("[A-Z]$", "", x = y)})}
     x1[,ranks] <- x
     out[[1]] <- x1
     names(out)[1] <- "data"
