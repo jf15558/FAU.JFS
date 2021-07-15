@@ -379,7 +379,7 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
       }
       x <- resolve_duplicates(x = x, ranks = ranks, verbose = verbose)
       # remove numeric
-      for(i in 1:length(rnks)) {
+      for(i in 1:length(ranks)) {
         x[,i] <- gsub("[0-9]", "", x[,i])
       }
     }
