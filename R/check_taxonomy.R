@@ -127,7 +127,7 @@
 
 check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "genus"), species = FALSE, species_sep = NULL,
                            routine = c("format_check", "spell_check", "discrete_ranks", "find_duplicates"), report = TRUE, verbose = TRUE,
-                           clean_name = FALSE, clean_spell = FALSE, thresh = NULL, resolve_duplicates = FALSE, append = TRUE,
+                           clean_name = TRUE, clean_spell = FALSE, thresh = NULL, resolve_duplicates = FALSE, append = TRUE,
                            term_set = NULL, collapse_set = NULL,
                            jw = 0.1, str = 1, str2 = NULL, alternative = "jaccard", q = 1, pref_set = NULL, suff_set = NULL, exclude_set = NULL,
                            jump = 3, plot = FALSE) {

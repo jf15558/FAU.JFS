@@ -49,7 +49,7 @@ clean_name <- function(x, terms = NULL, collapse = NULL, verbose = FALSE) {
 
   # set up important objects
   id_clean <- x
-  if(verbose) {cat(paste0("Beginning cleaning"), "\n")}
+  if(verbose) {cat(paste0("Beginning cleaning"), "\r")}
 
   # remove bracketed terms
   id_clean <- gsub("(\\(+.+\\))", "", id_clean)
@@ -58,7 +58,7 @@ clean_name <- function(x, terms = NULL, collapse = NULL, verbose = FALSE) {
   if(!is.null(terms)) {
     id_clean <- gsub(paste0("(?i)\\b", terms, "+\\b", collapse = "|"), " ", id_clean)
   }
-  if(verbose) {cat(paste0("Term cleaning done"), "\r")}
+  if(verbose) {cat(paste0("Beginning cleaning > Term cleaning done"), "\r")}
 
   # Roman and arabic numerals
   id_clean <- gsub("\\b[XVI]+\\b|[0-9]", " ", id_clean)
@@ -73,7 +73,7 @@ clean_name <- function(x, terms = NULL, collapse = NULL, verbose = FALSE) {
   id_clean <- gsub("[[:punct:]]", " ", id_clean)
   # trim isolated letter groups (up to 5 letters for capitals e.g species CCCDE, 1 for lowercase e.g. sp. a)
   id_clean <- gsub("\\b[A-Z]{1,5}\\b|\\b[a-z]{1}\\b", " ", id_clean)
-  if(verbose) {cat(paste0("Term cleaning done > Regular cleaning done"), "\r")}
+  if(verbose) {cat(paste0("Beginning cleaning > Term cleaning done > Regular cleaning done"), "\r")}
 
   # resolve whitespaces
   id_clean <- gsub("\\s+", " ", id_clean)
@@ -85,7 +85,7 @@ clean_name <- function(x, terms = NULL, collapse = NULL, verbose = FALSE) {
   id_clean[!is.na(id_clean)] <- paste0(toupper(substr(id_clean[!is.na(id_clean)], 1, 1)), substr(id_clean[!is.na(id_clean)], 2, nchar(id_clean[!is.na(id_clean)])))
   # zero length strings to NA
   id_clean[which(nchar(id_clean) == 0)] <- NA
-  if(verbose) {cat(paste0("Term cleaning done > Regular cleaning done > Final formatting done"), "\n")}
+  if(verbose) {cat(paste0("Beginning cleaning > Term cleaning done > Regular cleaning done > Final formatting done"), "\n")}
 
   # return cleaned name
   return(id_clean)
