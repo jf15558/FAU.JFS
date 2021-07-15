@@ -75,8 +75,8 @@ format_check <- function(x, ranks, species = FALSE, species_sep = " ", verbose =
 
     # check for non-letter characters, excluding spaces
     for(i in 1:length(ranks)) {
-      chars[[i]] <- which(grepl("[^[:alpha:]\\S]", x[,ranks[i]]))
-      chars2[i] <- any("[^[:alpha:]\\S]", x[,ranks[i]])
+      chars[[i]] <- which(grepl("[^ [:alpha:]]", x[,ranks[i]]))
+      chars2[i] <- any("[^ [:alpha:]]", x[,ranks[i]])
     }
     for(i in 1:(length(ranks) - 1)) {
       lens[[i]] <- which(as.logical(unlist(lapply(strsplit(x[,ranks[i]], " "), length)) - 1))
@@ -99,8 +99,8 @@ format_check <- function(x, ranks, species = FALSE, species_sep = " ", verbose =
 
     # check for non-letter characters, excluding spaces
     for(i in 1:length(ranks)) {
-      chars[[i]] <- which(grepl("[^[:alpha:]\\S]", x[,ranks[i]]))
-      chars2[i] <- any(grepl("[^[:alpha:]\\S]", x[,ranks[i]]))
+      chars[[i]] <- which(grepl("[^[:alpha:]]", x[,ranks[i]]))
+      chars2[i] <- any(grepl("[^[:alpha:]]", x[,ranks[i]]))
     }
     for(i in 1:length(ranks)) {
       lens[[i]] <- which(as.logical(unlist(lapply(strsplit(x[,ranks[i]], " "), length)) - 1))
