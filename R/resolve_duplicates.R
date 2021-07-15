@@ -67,7 +67,7 @@ resolve_duplicates <- function(x, ranks = NULL, jump = 4, plot = FALSE, verbose 
 
       # notify R if specified
       if(verbose) {
-        cat(sprintf("%d duplicates detected at rank %s. Resolving...", length(whichd), ranks[i]))
+        cat(sprintf("%d duplicates detected at rank %s. Resolving...", length(whichd), ranks[i]), "\n")
       }
       for(j in 1:length(whichd)) {
 
