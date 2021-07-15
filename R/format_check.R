@@ -89,7 +89,7 @@ format_check <- function(x, ranks, species = FALSE, species_sep = " ", verbose =
       if(verbose) {message(paste0("Non-letter characters detected at the following ranks: ", paste0(ranks[chars2], collapse = ", ")))}
     }
     if(sum(lens2[1:(length(ranks) - 1)]) != 0) {
-      if(verbose) {message(paste0("The following ranks contain names consisting of more than one word: ", paste0(ranks[lens], collapse = ", "),  ". Supraspecific taxon names are assumed to consist of single words"))}
+      if(verbose) {message(paste0("The following ranks contain names consisting of more than one word: ", paste0(ranks[lens2], collapse = ", "),  ". Supraspecific taxon names are assumed to consist of single words"))}
     }
     if(lens2[length(ranks) != 0]) {
       if(verbose) {message(paste0("The species colum contain names consisting of more than two words. Species names are assumed to consist of two words"))}
@@ -111,7 +111,7 @@ format_check <- function(x, ranks, species = FALSE, species_sep = " ", verbose =
       if(verbose) {message(paste0("Non-letter characters detected at the following ranks: ", paste0(ranks[chars2], collapse = ", ")))}
     }
     if(sum(lens2[1:(length(ranks) - 1)]) != 0) {
-      if(verbose) {message(paste0("The following ranks contain names consisting of more than one word: ", paste0(ranks[lens], collapse = ", "),  ". Supraspecific taxon names are assumed to consist of single words"))}
+      if(verbose) {message(paste0("The following ranks contain names consisting of more than one word: ", paste0(ranks[lens2], collapse = ", "),  ". Supraspecific taxon names are assumed to consist of single words"))}
     }
   }
 
