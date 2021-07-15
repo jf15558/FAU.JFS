@@ -327,6 +327,7 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
     names(out)[3] <- "synonyms"
     spell_list <- list()
     for(i in 1:(length(ranks) - 1)) {
+      if(verbose) {cat(paste0(i, ":"), "\r")}
       foo <- spell_check(x = x, terms = ranks[i + 1], groups = ranks[i],
                          jw = jw, str = str, str2 = str2, alternative = alternative,
                          q = q, pref = pref_list[[i + 1]], suff = suff_list[[i + 1]], exclude = exclude_list[[i + 1]], verbose = verbose)
