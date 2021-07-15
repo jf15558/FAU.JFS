@@ -312,6 +312,7 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
 
     if(clean_name) {
       for(i in 1:length(ranks)) {
+        if(verbose) {cat(paste0("Cleaning rank ", ranks[i], ":"), "\n")}
         x[,i] <- clean_name(x[,i], terms = terms_list[[i]], collapse = collapse_list[[i]], verbose = verbose)
       }
     }
