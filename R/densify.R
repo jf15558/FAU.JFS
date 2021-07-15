@@ -26,6 +26,8 @@
 #' @param method The method for quantifying occurrence density. By
 #' default both histogram and kernel density will be used
 #' @param ... additional arguments passed to @seealso density
+#' @param verbose A logical determining if function progress
+#' should be reported
 #' @return A list of two sparse matrices, the first containing
 #' the histogram counts, the second the kernel density estimates
 #' @importFrom stats na.omit
@@ -36,7 +38,7 @@
 #' @export
 
 densify <- function(x, rank = "genus", srt = "max_ma", end = "min_ma", step = 1, density = 0.1,
-                    method = c("histogram", "kernel"), ...) {
+                    method = c("histogram", "kernel"), ..., verbose = TRUE) {
 
   if(!is.data.frame(x)) {
     stop("x must be a dataframe")
@@ -67,6 +69,26 @@ densify <- function(x, rank = "genus", srt = "max_ma", end = "min_ma", step = 1,
   }
   if(!all(method %in% c("histogram", "kernel"))) {
     stop("Method must be one or both of histogram or kernel")
+  }
+  if(!is.logical(verbose) | length(verbose) != 1) {
+    stop("verbose should be a logical of length 1")
+  }
+  if(!verbose) {
+    baseopt <- getOption("pboptions")
+    opb <- pboptions(type = "none")
+  }
+
+  # internally define sv_cbind function as is very small
+  sv_cbind <- function (...) {
+    input <- lapply(list(...), as, "dsparseVector")
+    thelength <- unique(sapply(input,length))
+    stopifnot(length(thelength) == 1)
+    return(sparseMatrix(
+      x = unlist(lapply(input, slot, "x")),
+      i = unlist(lapply(input, slot, "i")),
+      p = c(0, cumsum(sapply(input, function(x) {length(x@x)}))),
+      dims = c(thelength, length(input))
+    ))
   }
 
   # global variable workaround for data.table
@@ -151,5 +173,6 @@ densify <- function(x, rank = "genus", srt = "max_ma", end = "min_ma", step = 1,
     out <- list(o1, o2)
     names(out) <- c("histogram", "kdensity")
   }
+  if(!verbose) {opt <- pboptions(baseopt)}
   return(out)
 }

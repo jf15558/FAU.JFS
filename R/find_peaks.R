@@ -11,6 +11,8 @@
 #' @param win A positive integer specifying the window length on
 #' either side of a peak (i.e. win 5 will give a total window of 11 -
 #' -5 indices + peak index + 5 indices)
+#' @param verbose A logical determining if function progress
+#' should be reported
 #' @return A list of four, the first three positions containing lists
 #' of the peak indices for each taxon, under raw, mean + sd and mean
 #' detection regimes. The fourth item is a dataframe of counts of peaks
@@ -19,7 +21,7 @@
 #' @importFrom stats na.omit supsmu sd
 #' @export
 
-find_peaks <- function(x, win = 5) {
+find_peaks <- function(x, win = 5, verbose = TRUE) {
 
   if(!exists("x")) {
     stop("Please supply x as a matrix as outputted by densify")
@@ -32,6 +34,10 @@ find_peaks <- function(x, win = 5) {
   }
   if(win < 1) {
     stop("win must be a single positive integer")
+  }
+  if(!verbose) {
+    baseopt <- getOption("pboptions")
+    opb <- pboptions(type = "none")
   }
   win <- round(win)
 
@@ -138,5 +144,6 @@ find_peaks <- function(x, win = 5) {
   names(out_all) <- names(out_ms) <- names(out_m) <- colnames(x)
   out <- list(out_all, out_ms, out_m, counts)
   names(out) <- c("profile_all", "profile_ms", "profile_m", "counts")
+  if(!verbose) {opt <- pboptions(baseopt)}
   return(out)
 }

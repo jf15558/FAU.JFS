@@ -12,7 +12,8 @@ densify(
   step = 1,
   density = 0.1,
   method = c("histogram", "kernel"),
-  ...
+  ...,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -35,6 +36,9 @@ densifying records. This should ideally be smaller than step}
 default both histogram and kernel density will be used}
 
 \item{...}{additional arguments passed to @seealso density}
+
+\item{verbose}{A logical determining if function progress
+should be reported}
 }
 \value{
 A list of two sparse matrices, the first containing

@@ -4,7 +4,7 @@
 \alias{find_peaks}
 \title{find_peaks}
 \usage{
-find_peaks(x, win = 5)
+find_peaks(x, win = 5, verbose = TRUE)
 }
 \arguments{
 \item{x}{A matrix as outputed by \code{densify}}
@@ -12,6 +12,9 @@ find_peaks(x, win = 5)
 \item{win}{A positive integer specifying the window length on
 either side of a peak (i.e. win 5 will give a total window of 11 -
 -5 indices + peak index + 5 indices)}
+
+\item{verbose}{A logical determining if function progress
+should be reported}
 }
 \value{
 A list of four, the first three positions containing lists

@@ -48,6 +48,13 @@ assess_duplicates <- function(x, node, mode = c("frequency", "completeness"), ju
   }
   n <- max(x$ranks)
 
+  # internally define LCA function as is very small
+  lca <- function(graph, ...) {
+    dots = c(...)
+    path = igraph::ego(graph, order = length(igraph::V(graph)), nodes = dots, mode = "out")
+    max(Reduce(intersect, path))
+  }
+
   # classify topologies and return list
   ol <- list()
   for(i in 1:length(node)) {
