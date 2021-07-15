@@ -184,7 +184,7 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
   routine <- as.vector(na.omit(routine[match(c("format_check", "spell_check", "discrete_ranks", "find_duplicates"), routine)]))
 
   # check additional flags
-  if(clean_spell) {
+  if(clean_name) {
 
     if(is.null(term_set)) {
       term_set <- as.list(1:ncol(x))
