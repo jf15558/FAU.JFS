@@ -44,7 +44,7 @@
 #' @import data.table
 #' @import pbapply
 #' @import data.table
-#' @importFrom methods as
+#' @importFrom methods as slot
 #' @importFrom stats na.omit supsmu sd
 #' @importClassesFrom Matrix sparseVector
 #' @export
@@ -170,15 +170,15 @@ threshold_ranges <- function(x, rank = "genus", srt = "max_ma", end = "min_ma", 
   }
   colnames(thresh) <- c("tax", "thresh")
 
-  # global variable workaround
-  . <- NULL
+  # global variable workaround for data.table
+  . <- slot <- NULL
 
   # internally define sv_cbind function as is very small
   sv_cbind <- function (...) {
     input <- lapply(list(...), as, "dsparseVector")
     thelength <- unique(sapply(input,length))
     stopifnot(length(thelength) == 1)
-    return(sparseMatrix(
+    return(Matrix::sparseMatrix(
       x = unlist(lapply(input, slot, "x")),
       i = unlist(lapply(input, slot, "i")),
       p = c(0, cumsum(sapply(input, function(x) {length(x@x)}))),

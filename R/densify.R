@@ -30,10 +30,10 @@
 #' should be reported
 #' @return A list of two sparse matrices, the first containing
 #' the histogram counts, the second the kernel density estimates
-#' @importFrom stats na.omit
-#' @importFrom methods as
 #' @import pbapply
 #' @import data.table
+#' @importFrom stats na.omit
+#' @importFrom methods as slot
 #' @importClassesFrom Matrix sparseVector
 #' @export
 
@@ -78,21 +78,21 @@ densify <- function(x, rank = "genus", srt = "max_ma", end = "min_ma", step = 1,
     opb <- pboptions(type = "none")
   }
 
+  # global variable workaround for data.table
+  . <- slot <- NULL
+
   # internally define sv_cbind function as is very small
   sv_cbind <- function (...) {
     input <- lapply(list(...), as, "dsparseVector")
     thelength <- unique(sapply(input,length))
     stopifnot(length(thelength) == 1)
-    return(sparseMatrix(
+    return(Matrix::sparseMatrix(
       x = unlist(lapply(input, slot, "x")),
       i = unlist(lapply(input, slot, "i")),
       p = c(0, cumsum(sapply(input, function(x) {length(x@x)}))),
       dims = c(thelength, length(input))
     ))
   }
-
-  # global variable workaround for data.table
-  . <- NULL
 
   # cut down to columns
   x <- x[,c(rank, srt, end)]

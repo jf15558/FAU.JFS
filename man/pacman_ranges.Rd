@@ -15,8 +15,8 @@ pacman_ranges(
   step = 1,
   density = 0.1,
   top = 5,
-  bottom = 3,
-  tail.flag = 0.25,
+  bottom = 5,
+  tail.flag = 0.33,
   method = c("histogram", "kernel")
 )
 }

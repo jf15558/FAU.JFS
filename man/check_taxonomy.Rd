@@ -12,7 +12,7 @@ check_taxonomy(
   routine = c("format_check", "spell_check", "discrete_ranks", "find_duplicates"),
   report = TRUE,
   verbose = TRUE,
-  clean_name = FALSE,
+  clean_name = TRUE,
   clean_spell = FALSE,
   thresh = NULL,
   resolve_duplicates = FALSE,
@@ -71,9 +71,9 @@ errors should be reported to the console
 \item Cleaning routine arguments *
 }}
 
-\item{clean_name}{If TRUE, the function will return cleaned versions of the columns in x
-using the routines in @seealso clean_name. These routines can be
-altered using the 'terms' and 'collapse' arguments.}
+\item{clean_name}{If TRUE, the function will return cleaned versions of
+the columns in x using the routines in @seealso clean_name. These routines
+can be altered using the 'term_set' and 'collapse_set' arguments.}
 
 \item{clean_spell}{If TRUE, the function will return a cleaned version
 of the supplied taxonomic dataframe, using the supplied threshold
@@ -155,32 +155,31 @@ for hierarchically structured taxonomic data. The first part
 of the routine calls @seealso format_check to perform a few
 presumptive checks on all columns, scanning for non-letter
 characters and checking the number of words in each string.
-If chosen, @seealso clean_name is called to ensure correct
-formatting. The second part of the routine calls @seealso
-spell_check to flag spelling discrepancies between names within
-a given taxonomic group. If chosen, the function can
-automatically impose the more frequent spelling. The third
-part of the routine calls @seealso discrete_ranks to flag
-name re-use at different taxonomic levels. Some of these cases
-may arise when a name has been unfortunately, (although
+By default, @seealso clean_name is called to ensure correct
+formatting as this improves downstream checking. The second
+part of the routine calls @seealso spell_check to flag spelling
+discrepancies between names within a given taxonomic group. If
+chosen, the function can automatically impose the more frequent
+spelling. The third part of the routine calls @seealso discrete_ranks
+to flag name re-use at different taxonomic levels. Some of these
+cases may arise when a name has been unfortunately, (although
 permissibly) used to refer to groups at different taxonomic levels,
 or where a higher classification may have been inserted as a
-placeholder for a missing lower classification. If chosen, in the
-case of non-rank unique names, suffixes of the form _RNK + the
-column number, e.g _RNK1, are added to ensure that the resulting
-names are unique to their rank. The fourth part of the routine
-calls @seealso find_duplicates to flag variable higher classifications
-for a given taxon, including cases where a higher classification
-is missing for one instance of a taxon, but present for the others.
-If chosen, @seealso resolve_duplicates is called to ensure a
-consistent classification is imposed. For cases where a name has
-been re-used at the same rank for genuinely different taxa
-(not permissible, unlike name re-use at different ranks) suffixes
-are added as capital letters, e.g. TaxonA, TaxonB. If any of the
-automatic cleaning routines are employed, the function will returned
-a cleaned version of the dataset. If the use of suffixes is not
-desirable, the function behaviour can be altered so that any
-suffixes are dropped before returning.
+placeholder for a missing lower classification. The fourth part of
+the routine calls @seealso find_duplicates to flag variable higher
+classifications for a given taxon, including cases where a higher
+classification is missing for one instance of a taxon, but present
+for the others. If chosen, @seealso resolve_duplicates is called
+to ensure a consistent classification is imposed. For cases where
+a name has been re-used at the same rank for genuinely different
+taxa (not permissible, unlike name re-use at different ranks)
+suffixes are added as capital letters, e.g. TaxonA, TaxonB. If
+any of the automatic cleaning routines are employed (again the
+default behaviour as clean_name is TRUE by default), the function
+will return are a cleaned version of the dataset. If the use of
+suffixes from @seealso resolve_duplicates is not desirable,
+the function behaviour can be altered so that any suffixes are
+dropped before returning.
 }
 \details{
 \itemize{
