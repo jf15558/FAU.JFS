@@ -429,4 +429,8 @@ threshold_ranges <- function(x, rank = "genus", srt = "max_ma", end = "min_ma", 
   # output
   out <- list(gen2, dm, pks_out, c3)
   names(out) <- c("data", "matrix", "peaks", "comparison")
+  if(!report) {
+    out <- gen2
+  }
+  return(out)
 }

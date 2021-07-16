@@ -15,7 +15,6 @@
 #' @param verbose A logical determining if function progress
 #' should be reported
 #' @import data.table
-#' @export
 
 threshold_peaks <- function(x, y, ycols = c("genus", "max_ma", "min_ma"), thresh = 15, verbose = TRUE) {
 

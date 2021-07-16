@@ -38,7 +38,7 @@
 #' @references Lazarus et al (2012) Paleobiology
 
 pacman_ranges <- function (x, rank = "genus", srt = "max_ma", end = "min_ma",
-                           step = 1, density = 0.1, top = 5, bottom = 3, tail.flag = 0.25, method = c("histogram", "kernel")) {
+                           step = 1, density = 0.1, top = 5, bottom = 5, tail.flag = 0.33, method = c("histogram", "kernel")) {
 
   if (!is.data.frame(x)) {
     stop("x must be a dataframe")
