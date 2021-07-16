@@ -377,7 +377,9 @@ check_taxonomy <- function(x, ranks = c("phylum", "class", "order", "family", "g
 
       # paste a numeric at the start of each column to ensure rank discretion
       for(i in 1:ncol(x)) {
+        blank <- which(is.na(x[,i]))
         x[,i] <- paste0(i, x[,i])
+        x[blank,i] <- NA
       }
       x <- resolve_duplicates(x = x, ranks = ranks, verbose = verbose)
       # remove numeric
