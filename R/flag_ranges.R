@@ -125,8 +125,8 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
   xr <- xr1[xr1$taxon %in% yr$taxon,]
   rownames(xr) <- NULL
   # dataframe to store output
-  z <- data.frame(xr$taxon, "000", NA, NA, NA, NA, NA, NA, NA, NA)
-  colnames(z) <- c("taxon", "status", "n_1R1", "n_0R1", "n_1R0", "n_0R0", "n_00R", "n_R00", "FAD95", "LAD95")
+  z <- data.frame(xr$taxon, "000", NA, NA, NA, NA, NA, NA)
+  colnames(z) <- c("taxon", "status", "n_1R1", "n_0R1", "n_1R0", "n_0R0", "n_00R", "n_R00")
   flag <- rep("000", times = nrow(x))
   fad_diff <- flag
   fad_diff[] <- NA
@@ -220,40 +220,6 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
           if(z$status[i] == "000") {z$status[i] <- "1R0"}
           if(z$status[i] %in% c("00R", "01R")) {z$status[i] <- "0R0"}
         }
-
-        # get the KDE for the boundaries if there are suitable errors for this
-        if(z$status[i] %in% c("0R0", "0R1", "00R")) {
-          upr <- occs[which(occs$max > yr$max[mt] | occs$min > yr$max[mt]),]
-          # add very small constant to deal with zero range ages
-          upr[,3] <- upr[,3] - 0.1
-          upr$min[which(upr$min < yr$max[mt])] <- yr$min[mt]
-          # this protects against precision error and needs to have inbuilt correction elsewhere
-          if(min(upr[,2] - upr[,3]) >= 0.1) {
-            steps <- -0.01
-            upr <- as.vector(unlist(apply(upr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
-            ud <- stats::density(c(upr, yr$max[mt]), from = yr$max[mt], to = max(upr))
-            z$FAD95[i] <- BMS::quantile.coef.density(ud, probs = alpha)
-          } else {
-            z$FAD95[i] <- yr$max[mt]
-          }
-        }
-
-        if(z$status[i] %in% c("0R0", "1R0", "R00")) {
-          lwr <- occs[which(occs$min < yr$min[mt] | occs$max < yr$min[mt]),]
-          # add very small constant to deal with zero range ages
-          lwr[,2] <- lwr[,2] + 0.1
-          lwr$max[which(lwr$max > yr$min[mt])] <- yr$min[mt]
-
-          # this protects against precision error and needs to have inbuilt correction elsewhere
-          if(min(lwr[,2] - lwr[,3]) >= 0.01) {
-            steps <- -0.01
-            lwr <- as.vector(unlist(apply(lwr, 1, function(x) {seq(from = x[2], to = x[3], by = steps)})))
-            ld <- stats::density(c(yr$min[mt], lwr), from = min(lwr), to = yr$min[mt])
-            z$LAD95[i] <- BMS::quantile.coef.density(ld, probs = 1 - alpha)
-          } else {
-            z$LAD95[i] <- yr$min[mt]
-          }
-        }
       }
     }
     # notify R
@@ -262,10 +228,6 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
       cat(paste0("Taxon ", i, "/", nrow(xr), " checked"))
     }
   }
-  z$y_FAD <- yr$min[match(z$taxon, yr$taxon)]
-  z$y_LAD <- yr$max[match(z$taxon, yr$taxon)]
-  z$FAD_diff <- z$FAD95 - z$y_FAD
-  z$LAD_diff <- z$y_LAD - z$LAD95
   per_occ <- cbind.data.frame(flag, round(as.numeric(fad_diff), digits = 2),
                               round(as.numeric(lad_diff), digits = 2))
   colnames(per_occ) <- c("code", "fad_diff", "lad_diff")
@@ -274,5 +236,6 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
   out <- list()
   out[[1]] <- z
   out[[2]] <- per_occ
+  names(out) <- c("taxon", "occurrence")
   return(out)
 }
