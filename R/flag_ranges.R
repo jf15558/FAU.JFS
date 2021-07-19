@@ -233,6 +233,7 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
   colnames(per_occ) <- c("code", "fad_diff", "lad_diff")
 
   # return
+  if(verbose) {message("See $occurrence in output for the error statuses of individual occurrences")}
   out <- list()
   out[[1]] <- z
   out[[2]] <- per_occ

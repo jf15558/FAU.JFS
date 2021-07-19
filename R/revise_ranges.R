@@ -1,4 +1,4 @@
-#' resolve_ranges
+#' revise_ranges
 #'
 #' Function to generate a consensus age for assemblages
 #' of fossil data in x, given a table of taxonomic
@@ -63,7 +63,7 @@
 #' @importFrom stats complete.cases
 #' @export
 
-resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", end = "min_ma", taxon = "genus",
+revise_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", end = "min_ma", taxon = "genus",
                            err = NULL, prop = 0.75, allow.zero = TRUE, verbose = TRUE) {
 
   if(!exists("x") | !exists("y")) {
@@ -308,6 +308,7 @@ resolve_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
   }
 
   # return
+  if(verbose) {message("See $occurrence in output for the revised ages of individual occurrences")}
   per_occ <- cbind.data.frame(FAD, LAD, FAD_diff, LAD_diff, tax_flag)
   colnames(per_occ) <- c("FAD", "LAD", "FAD_diff", "LAD_diff", "tax_flag")
   out <- list()
