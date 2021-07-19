@@ -125,8 +125,8 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
   xr <- xr1[xr1$taxon %in% yr$taxon,]
   rownames(xr) <- NULL
   # dataframe to store output
-  z <- data.frame(xr$taxon, "000", NA, NA, NA, NA, NA, NA)
-  colnames(z) <- c("taxon", "status", "n_1R1", "n_0R1", "n_1R0", "n_0R0", "n_00R", "n_R00")
+  z <- data.frame(xr$taxon, "000", NA, NA, NA, NA, NA, NA, NA, NA)
+  colnames(z) <- c("taxon", "status", "n_1R1", "n_0R1", "n_1R0", "n_0R0", "n_00R", "n_R00", "fad_diff", "lad_diff")
   flag <- rep("000", times = nrow(x))
   fad_diff <- flag
   fad_diff[] <- NA
@@ -157,6 +157,7 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
         flag[occs$rownum] <- "R1R"
         z$n_1R1[i] <- nrow(occs)
         z$status[i] <- "R1R"
+        z$fad_diff[i] <- z$lad_diff[i] <- NA
 
       } else {
 
@@ -220,6 +221,21 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
           if(z$status[i] == "000") {z$status[i] <- "1R0"}
           if(z$status[i] %in% c("00R", "01R")) {z$status[i] <- "0R0"}
         }
+
+        # range difference checks
+        upr <- max(occs$max)
+        if(upr > yr$max[mt]) {
+          z$fad_diff[i] <- upr - yr$max[mt]
+        } else {
+          z$fad_diff[i] <- NA
+        }
+        lwr <- min(occs$min)
+        if(lwr < yr$min[mt]) {
+          z$lad_diff[i] <- yr$min[mt] - lwr
+        } else {
+          z$lad_diff[i] <- NA
+        }
+
       }
     }
     # notify R
@@ -233,7 +249,7 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
   colnames(per_occ) <- c("code", "fad_diff", "lad_diff")
 
   # return
-  if(verbose) {message("See $occurrence in output for the error statuses of individual occurrences")}
+  if(verbose) {message("/nSee $occurrence in output for the error statuses of individual occurrences")}
   out <- list()
   out[[1]] <- z
   out[[2]] <- per_occ

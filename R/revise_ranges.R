@@ -308,7 +308,7 @@ revise_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", en
   }
 
   # return
-  if(verbose) {message("See $occurrence in output for the revised ages of individual occurrences")}
+  if(verbose) {message("\nSee $occurrence in output for the revised ages of individual occurrences")}
   per_occ <- cbind.data.frame(FAD, LAD, FAD_diff, LAD_diff, tax_flag)
   colnames(per_occ) <- c("FAD", "LAD", "FAD_diff", "LAD_diff", "tax_flag")
   out <- list()
