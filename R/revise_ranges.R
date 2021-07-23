@@ -111,16 +111,16 @@ revise_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", en
     warning("If err is supplied, then do.flag will be ignored")
     do.flag <- FALSE
   }
-  if(is.null(err) & isFALSE(do.flag)) {
-    err <- "age_flag"
-    x$age_flag <- rep("0R0", times = nrow(x))
-  } else {
+  if(!is.null(err) & isFALSE(do.flag)) {
     if(!err %in% colnames(x)) {
       stop("err must be a column name in x")
     }
     if(!all(unique(x[,err]) %in% c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0"))) {
       stop("err contains a non-standard error code (see documentation")
     }
+  } else {
+    err <- "age_flag"
+    x$age_flag <- rep("0R0", times = nrow(x))
   }
   if(do.flag) {
     if(verbose) {cat("Performing pre-revision taxon flagging", "\n")}
