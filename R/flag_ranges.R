@@ -32,9 +32,6 @@
 #' three for the same column types as in xcols, but for
 #' dataset y. This is useful if the column names differ
 #' between the datasets
-#' @param alpha A numeric of length 1, greater than 0 and
-#' less than 1 - the interval for which the error density
-#' on taxon FADs and LADs will be returned
 #' @param verbose A logical of length one determining if
 #' the flagging progress should be reported to the console
 #' @return A list of two dataframes, the first recording
@@ -45,7 +42,7 @@
 #' @import data.table
 #' @export
 
-flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma"), ycols = NULL, alpha = 0.95, verbose = TRUE) {
+flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma"), ycols = NULL, verbose = TRUE) {
 
   # check all information is supplied
   if(is.null(x) | is.null(y)) {
@@ -79,12 +76,6 @@ flag_ranges <- function(x = NULL, y = NULL, xcols = c("genus", "max_ma", "min_ma
   }
   if(class(y[,ycols[2]]) != "numeric" | class(y[,ycols[3]]) != "numeric") {
     stop("Elements 2 and 3 of ycols must refer to numeric columns in y")
-  }
-  if(length(alpha) != 1 | !is.numeric(alpha)) {
-    stop("Alpha must be a single numeric between 0 - 1, not inclusive")
-  }
-  if(alpha <= 0 | alpha >= 1) {
-    stop("Alpha must be a single numeric between 0 - 1, not inclusive")
   }
   if(!all(length(verbose) == 1, class(verbose) == "logical")) {
     stop("verbose must be one of TRUE or FALSE")

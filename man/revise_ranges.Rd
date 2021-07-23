@@ -12,6 +12,7 @@ revise_ranges(
   end = "min_ma",
   taxon = "genus",
   err = NULL,
+  do.flag = FALSE,
   prop = 0.75,
   allow.zero = TRUE,
   verbose = TRUE
@@ -48,6 +49,14 @@ unchecked, "R1R" - valid, "0R0" - both FAD and LAD exceeded,
 than range, "01R" - FAD exceeded, "1R0" - LAD exceeded.
 If not supplied, all assemblages will be checked, even if
 they are already valid a priori.}
+
+\item{do.flag}{Rather than supplying error codes, should
+flag_ranges be called internally to generate error codes
+for supply to the rest of revise_ranges? As with err, this
+is useful to prefilter individual occurrences, allowing
+assemblages contain all valid, all unchecked or a mixture
+of such error codes to be skipped. This can massively speed
+up processing time for large datasets.}
 
 \item{prop}{A numeric, between 0 and 1, denoting the
 threshold percentage of taxa in the assemblage for

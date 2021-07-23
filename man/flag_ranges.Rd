@@ -9,7 +9,6 @@ flag_ranges(
   y = NULL,
   xcols = c("genus", "max_ma", "min_ma"),
   ycols = NULL,
-  alpha = 0.95,
   verbose = TRUE
 )
 }
@@ -29,10 +28,6 @@ columns in x.}
 three for the same column types as in xcols, but for
 dataset y. This is useful if the column names differ
 between the datasets}
-
-\item{alpha}{A numeric of length 1, greater than 0 and
-less than 1 - the interval for which the error density
-on taxon FADs and LADs will be returned}
 
 \item{verbose}{A logical of length one determining if
 the flagging progress should be reported to the console}

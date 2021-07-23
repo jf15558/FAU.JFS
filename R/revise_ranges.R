@@ -42,6 +42,13 @@
 #' than range, "01R" - FAD exceeded, "1R0" - LAD exceeded.
 #' If not supplied, all assemblages will be checked, even if
 #' they are already valid a priori.
+#' @param do.flag Rather than supplying error codes, should
+#' flag_ranges be called internally to generate error codes
+#' for supply to the rest of revise_ranges? As with err, this
+#' is useful to prefilter individual occurrences, allowing
+#' assemblages contain all valid, all unchecked or a mixture
+#' of such error codes to be skipped. This can massively speed
+#' up processing time for large datasets.
 #' @param prop A numeric, between 0 and 1, denoting the
 #' threshold percentage of taxa in the assemblage for
 #' which a consensus age must be found
@@ -64,7 +71,7 @@
 #' @export
 
 revise_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", end = "min_ma", taxon = "genus",
-                           err = NULL, prop = 0.75, allow.zero = TRUE, verbose = TRUE) {
+                           err = NULL, do.flag = FALSE, prop = 0.75, allow.zero = TRUE, verbose = TRUE) {
 
   if(!exists("x") | !exists("y")) {
     stop("Both x and y must be supplied")
@@ -80,17 +87,6 @@ revise_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", en
   }
   if(!all(c(taxon, srt, end) %in% colnames(y))) {
     stop("Arguments taxon, srt and end must all be the same column names in x and y")
-  }
-  if(is.null(err)) {
-    err <- "age_flag"
-    x$age_flag <- rep("0R0", times = nrow(x))
-  } else {
-    if(!err %in% colnames(x)) {
-      stop("err must be a column name in x")
-    }
-    if(!all(unique(x[,err]) %in% c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0"))) {
-      stop("err contains a non-standard error code (see documentation")
-    }
   }
   if(!all(class(x[,srt]) == "numeric", class(x[,end]) == "numeric",
           class(y[,srt]) == "numeric", class(y[,end]) == "numeric")) {
@@ -111,8 +107,30 @@ revise_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", en
   if(prop < 0.5 & verbose) {
     warning("Prop is quite a low value - a minimum of 0.6 may be desirable")
   }
+  if(!is.null(err) & do.flag) {
+    warning("If err is supplied, then do.flag will be ignored")
+    do.flag <- FALSE
+  }
+  if(is.null(err) & isFALSE(do.flag)) {
+    err <- "age_flag"
+    x$age_flag <- rep("0R0", times = nrow(x))
+  } else {
+    if(!err %in% colnames(x)) {
+      stop("err must be a column name in x")
+    }
+    if(!all(unique(x[,err]) %in% c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0"))) {
+      stop("err contains a non-standard error code (see documentation")
+    }
+  }
+  if(do.flag) {
+    if(verbose) {cat("Performing pre-revision taxon flagging", "\n")}
+    range_comp <- flag_ranges(x = x, y = y, xcols <- c(taxon, srt, end), verbose = verbose)
+    x$age_flag <- range_comp$occurrence$code
+    err <- "age_flag"
+  }
   # global variable workaround
   . <- lb <- ub <- b <- N <- .N <- .SD <- .EACHI <- NULL
+  if(verbose) {cat("Beginning age revision", "\n")}
 
   # tabulate error codes in each collection (ignoring uncoded and correct ages R1R, 000)
   codes <- c("000", "R1R", "0R0", "00R", "R00", "0R1", "1R0")
@@ -303,12 +321,12 @@ revise_ranges <- function(x, y, assemblage = "collection_no", srt = "max_ma", en
     # notify R
     if(verbose) {
       if(i != 1) {cat(paste0("\r"))}
-      cat(paste0("Assemblage ", i, "/", length(to_do), " checked"))
+      cat(paste0("Assemblage ", i, "/", length(to_do), " checked"), "\n")
     }
   }
 
   # return
-  if(verbose) {message("\nSee $occurrence in output for the revised ages of individual occurrences")}
+  if(verbose) {message("See $occurrence in output for the revised ages of individual occurrences\n")}
   per_occ <- cbind.data.frame(FAD, LAD, FAD_diff, LAD_diff, tax_flag)
   colnames(per_occ) <- c("FAD", "LAD", "FAD_diff", "LAD_diff", "tax_flag")
   out <- list()
