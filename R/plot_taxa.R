@@ -105,6 +105,9 @@ plot_taxa <- function(x, taxon, trank, ranks, mode = c("parent", "child", "all")
   try <- igraph::V(Reduce(igraph::union, try))$name
   # get the subgraph for those vertices
   try <- igraph::induced_subgraph(tg$taxa, try)
+  # alter vertex colour for plotting
+  igraph::V(try)$color = rep(igraph::categorical_pal(8)[1], length(igraph::V(try)))
+  igraph::V(try)$color[igraph::V(try)$name %in% taxon] <- igraph::categorical_pal(8)[2]
 
   # set the graph layout and plot
   lay <- igraph::layout_with_sugiyama(try, layers = as.numeric(igraph::V(try)$rank), hgap = 1)
