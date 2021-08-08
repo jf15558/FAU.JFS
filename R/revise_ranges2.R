@@ -189,6 +189,7 @@ revise_ranges2 <- function(x, y, assemblage = "collection_no", srt = "max_ma", e
 
       dt <- data.frame(foo[,3], foo[,2])
       sol <- intersect_ranges(dt, verbose = FALSE)
+      sol$N <- sol$N / nrow(foo)
 
       # if there are any solutions above the threshold
       if(any(sol$N >= prop)) {

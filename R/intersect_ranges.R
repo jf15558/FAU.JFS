@@ -99,7 +99,7 @@ intersect_ranges <- function(x, srt = NULL, end = NULL, verbose = TRUE) {
     changes <- c(1, which(diffs > 1))
 
     # final result - one row for every solution!
-    results <- matrix(ncol = 2, nrow = length(changes))
+    results <- matrix(ncol = 3, nrow = length(changes))
 
     # for every solution
     for(i in 1:length(changes)){
@@ -142,5 +142,5 @@ intersect_ranges <- function(x, srt = NULL, end = NULL, verbose = TRUE) {
     rownames(results) <- paste0(maxVals, "_", 1:nrow(results))
   }
   # return object
-  return(results)
+  return(as.data.frame(results))
 }
